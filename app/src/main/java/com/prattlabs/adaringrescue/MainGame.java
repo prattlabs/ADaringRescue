@@ -4,6 +4,7 @@ import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -36,7 +37,7 @@ public class MainGame extends AppCompatActivity implements OnClickListener {
             public void run() {
                 initGfx();
             }
-        }, 5000); // Wait 1 second for the layout manager to run before initializing the graphics.
+        }, 1000); // Wait 1 second for the layout manager to run before initializing the graphics.
     }
 
     private Point getRandomPoint() {
@@ -57,7 +58,7 @@ public class MainGame extends AppCompatActivity implements OnClickListener {
      * Initialize the graphics.
      */
     synchronized public void initGfx() {
-        System.err.println("initGfx()");
+        Log.i("initGfx", "initGfx");
         getCanvas().resetStarField();
         //Select two random points for our initial sprite placement.
         //The loop is just to make sure we don't accidentally pick
