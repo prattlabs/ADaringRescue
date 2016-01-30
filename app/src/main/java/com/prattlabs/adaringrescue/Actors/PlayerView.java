@@ -1,7 +1,6 @@
-package com.prattlabs.adaringrescue.Actors;
+package com.prattlabs.adaringrescue.actors;
 
 import android.content.Context;
-import android.view.View;
 import android.widget.ImageView;
 
 /**
