@@ -96,14 +96,14 @@ public class MainGame extends AppCompatActivity implements OnClickListener {
      * Retrieves the game's button object for readability.
      */
     private Button getButton() {
-        return getButton();
+        return ((Button)findViewById(R.id.the_button));
     }
 
     /**
      * Retrieves the game board for readability.
      */
     private GameBoard getCanvas() {
-        return getCanvas();
+        return ((GameBoard)findViewById(R.id.the_canvas));
     }
 
 }
