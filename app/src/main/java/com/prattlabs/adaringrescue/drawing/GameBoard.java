@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -35,20 +36,32 @@ public class GameBoard extends View {
     private Point sprite2;
     private Bitmap bm1 = null;
     private Bitmap bm2 = null;
+    private Matrix m = null;
+    private int sprite1Rotation = 0;
     private static final int NUM_OF_STARS = 25;
 
-    synchronized public void setSprite1(Point p) {
-        sprite1=p;
+    synchronized public void setSprite1(int x, int y) {
+        sprite1=new Point(x,y);
     }
-    synchronized public Point getSprite1() {
-        return sprite1;
+    //sprite 1 getter
+    synchronized public int getSprite1X() {
+        return sprite1.x;
     }
 
-    synchronized public void setSprite2(Point p) {
-        sprite2=p;
+    synchronized public int getSprite1Y() {
+        return sprite1.y;
     }
-    synchronized public Point getSprite2() {
-        return sprite2;
+    //sprite 2 setter
+    synchronized public void setSprite2(int x, int y) {
+        sprite2=new Point(x,y);
+    }
+    //sprite 2 getter
+    synchronized public int getSprite2X() {
+        return sprite2.x;
+    }
+
+    synchronized public int getSprite2Y() {
+        return sprite2.y;
     }
 
     synchronized public int getSprite1Width() {
@@ -79,6 +92,7 @@ public class GameBoard extends View {
      */
     public GameBoard(Context context, AttributeSet aSet) {
         super(context, aSet);
+        m = new Matrix();
         p = new Paint();
         sprite1 = new Point(-1,-1);
         sprite2 = new Point(-1,-1);
@@ -134,7 +148,14 @@ public class GameBoard extends View {
 
     private void drawSprites(Canvas canvas) {
         if (sprite1.x>=0) {
-            canvas.drawBitmap(bm1, sprite1.x, sprite1.y, null);
+            m.reset();
+            m.postTranslate((float)(sprite1.x), (float)(sprite1.y));
+            m.postRotate(sprite1Rotation,
+                    (float)(sprite1.x+sprite1Bounds.width()/2.0),
+                    (float)(sprite1.y+sprite1Bounds.width()/2.0));
+            canvas.drawBitmap(bm1, m, null);
+            sprite1Rotation+=5;
+            if (sprite1Rotation >= 360) sprite1Rotation=0;
         }
         if (sprite2.x>=0) {
             canvas.drawBitmap(bm2, sprite2.x, sprite2.y, null);

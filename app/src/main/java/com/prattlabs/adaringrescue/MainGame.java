@@ -22,6 +22,14 @@ public class MainGame extends AppCompatActivity implements OnClickListener {
 
     private Handler frame = new Handler();
 
+    //Velocity includes the speed and the direction of our sprite motion
+    private Point sprite1Velocity;
+    private Point sprite2Velocity;
+    private int sprite1MaxX;
+    private int sprite1MaxY;
+    private int sprite2MaxX;
+    private int sprite2MaxY;
+
     // Divide the frame by 1000 to calculate how many times per second the screen will update.
     private static final int FRAME_RATE = 20; // 50 fps
 
@@ -38,6 +46,15 @@ public class MainGame extends AppCompatActivity implements OnClickListener {
                 initGfx();
             }
         }, 1000); // Wait 1 second for the layout manager to run before initializing the graphics.
+    }
+
+    private Point getRandomVelocity() {
+        Random r = new Random();
+        int min = 1;
+        int max = 5;
+        int x = r.nextInt(max-min+1)+min;
+        int y = r.nextInt(max-min+1)+min;
+        return new Point (x,y);
     }
 
     private Point getRandomPoint() {
@@ -68,8 +85,23 @@ public class MainGame extends AppCompatActivity implements OnClickListener {
             p1 = getRandomPoint();
             p2 = getRandomPoint();
         } while (Math.abs(p1.x - p2.x) < getCanvas().getSprite1Width());
-        getCanvas().setSprite1(p1);
-        getCanvas().setSprite2(p2);
+        getCanvas().setSprite1(p1.x, p1.y);
+        getCanvas().setSprite2(p2.x, p2.y);
+
+        //Give the asteroid a random velocity
+        sprite1Velocity = getRandomVelocity();
+        //Fix the ship velocity at a constant speed for now
+        sprite2Velocity = new Point(1,1);
+
+        sprite1MaxX = findViewById(R.id.the_canvas).getWidth() -
+                ((GameBoard)findViewById(R.id.the_canvas)).getSprite1Width();
+        sprite1MaxY = findViewById(R.id.the_canvas).getHeight() -
+                ((GameBoard)findViewById(R.id.the_canvas)).getSprite1Height();
+        sprite2MaxX = findViewById(R.id.the_canvas).getWidth() -
+                ((GameBoard)findViewById(R.id.the_canvas)).getSprite2Width();
+        sprite2MaxY = findViewById(R.id.the_canvas).getHeight() -
+                ((GameBoard)findViewById(R.id.the_canvas)).getSprite2Height();
+
         getButton().setEnabled(true);
         // Remove callbacks to keep from stacking up over time.
         frame.removeCallbacks(frameUpdate);
@@ -85,6 +117,35 @@ public class MainGame extends AppCompatActivity implements OnClickListener {
         @Override
         public void run() {
             frame.removeCallbacks(frameUpdate);
+
+            //First get the current positions of both sprites
+            Point sprite1 = new Point
+                    (((GameBoard)findViewById(R.id.the_canvas)).getSprite1X(),
+                            ((GameBoard)findViewById(R.id.the_canvas)).getSprite1Y()) ;
+            Point sprite2 = new Point
+                    (((GameBoard)findViewById(R.id.the_canvas)).getSprite2X(),
+                            ((GameBoard)findViewById(R.id.the_canvas)).getSprite2Y());
+            //Now calc the new positions.
+            //Note if we exceed a boundary the direction of the velocity gets reversed.
+            sprite1.x = sprite1.x + sprite1Velocity.x;
+            if (sprite1.x > sprite1MaxX || sprite1.x < 5) {
+                sprite1Velocity.x *= -1;
+            }
+            sprite1.y = sprite1.y + sprite1Velocity.y;
+            if (sprite1.y > sprite1MaxY || sprite1.y < 5) {
+                sprite1Velocity.y *= -1;
+            }
+            sprite2.x = sprite2.x + sprite2Velocity.x;
+            if (sprite2.x > sprite2MaxX || sprite2.x < 5) {
+                sprite2Velocity.x *= -1;
+            }
+            sprite2.y = sprite2.y + sprite2Velocity.y;
+            if (sprite2.y > sprite2MaxY || sprite2.y < 5) {
+                sprite2Velocity.y *= -1;
+            }
+            ((GameBoard)findViewById(R.id.the_canvas)).setSprite1(sprite1.x,
+                    sprite1.y);
+            ((GameBoard)findViewById(R.id.the_canvas)).setSprite2(sprite2.x, sprite2.y);
 
             // Update objects on screen, refresh canvas
             getCanvas().invalidate();
