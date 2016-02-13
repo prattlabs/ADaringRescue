@@ -1,6 +1,7 @@
 package com.prattlabs.adaringrescue;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
@@ -79,6 +80,8 @@ public class MainGame extends Activity implements OnClickListener {
         mGameBoard = ((GameBoard) findViewById(R.id.the_canvas));
         mButton = ((Button) findViewById(R.id.the_button));
         mButton.setOnClickListener(this);
+        Intent svc=new Intent(this, BGMusicService.class);
+        startService(svc); //OR stopService(svc);
         h.postDelayed(new Runnable() {
             @Override
             public void run() {

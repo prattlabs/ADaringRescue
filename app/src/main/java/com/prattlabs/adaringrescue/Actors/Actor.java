@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 import com.prattlabs.adaringrescue.drawing.GameBoard;
@@ -18,13 +17,12 @@ public class Actor extends View {
 
     private static final int BMP_ROWS = 4;
     private static final int BMP_COLUMNS = 3;
+    private int width =0;
+    private int height =0;
     Point location;
     Point velocity;
     Bitmap bitmap;
-    Bitmap bmp;
     Rect bounds;
-    private int width;
-    private int height;
     int maxX;
     int maxY;
 
@@ -36,8 +34,8 @@ public class Actor extends View {
         this(context, aSet, 20, 20);
         bitmap = BitmapFactory.decodeResource(getResources(), pngId);
         bounds = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
-        this.width = bmp.getWidth() / BMP_COLUMNS;
-        this.height = bmp.getHeight() / BMP_ROWS;
+        this.width = bitmap.getWidth() / BMP_COLUMNS;
+        this.height = bitmap.getHeight() / BMP_ROWS;
     }
 
     public Actor(Context context, AttributeSet aSet, int x, int y) {
@@ -65,8 +63,6 @@ public class Actor extends View {
 
     public void updateLocation() {
         setLocation(getLocation().x + getVelocity().x, getLocation().y + getVelocity().y);
-Log.e("Event", "maxX = " + maxX);
-        Log.e("Event", "maxY = " + maxY);
         if (maxX != 0 && maxY != 0) {
             if (getLocation().x > maxX || getLocation().x < 5) {
                 getVelocity().x *= -1;

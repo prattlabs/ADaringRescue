@@ -21,6 +21,12 @@
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity android:name=".Fight">
         </activity>
+
+        <service
+            android:name=".BGMusicService"
+            android:enabled="true"
+            android:exported="true">
+        </service>
     </application>
 
 </manifest>
