@@ -138,12 +138,8 @@ public class GameBoard extends View {
         for (int i = 0; i < NUM_OF_STARS; i++) {
             canvas.drawPoint(starField.get(i).x, starField.get(i).y, paintBrush);
         }
-        if (player.getLocation().x >= 0) {
-            canvas.drawBitmap(player.getBitmap(), player.getLocation().x, player.getLocation().y, null);
-        }
-        if (enemy.getLocation().y >= 0) {
-            canvas.drawBitmap(enemy.getBitmap(), enemy.getLocation().x, enemy.getLocation().y, null);
-        }
+        canvas.drawBitmap(player.getBitmap(), player.getLocation().x, player.getLocation().y, null);
+        canvas.drawBitmap(enemy.getBitmap(), enemy.getLocation().x, enemy.getLocation().y, null);
         //The last order of business is to check for a collision
         //        collisionDetected = checkForCollision();
         //        if (collisionDetected) {

@@ -115,7 +115,7 @@ public class MainGame extends Activity implements OnClickListener {
     @Override
     protected void onPause() {
         super.onPause();
-        startService(musicService);
+        stopService(musicService);
     }
 
     @Override
