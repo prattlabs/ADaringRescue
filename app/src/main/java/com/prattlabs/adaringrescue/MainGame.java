@@ -71,6 +71,7 @@ public class MainGame extends Activity implements OnClickListener {
             frame.postDelayed(frameUpdate, FRAME_RATE);
         }
     };
+    private Intent musicService;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -80,8 +81,8 @@ public class MainGame extends Activity implements OnClickListener {
         mGameBoard = ((GameBoard) findViewById(R.id.the_canvas));
         mButton = ((Button) findViewById(R.id.the_button));
         mButton.setOnClickListener(this);
-        Intent svc=new Intent(this, BGMusicService.class);
-        startService(svc); //OR stopService(svc);
+        musicService = new Intent(this, BGMusicService.class);
+        startService(musicService); //OR stopService(svc);
         h.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -109,6 +110,18 @@ public class MainGame extends Activity implements OnClickListener {
         frame.removeCallbacks(frameUpdate);
         mGameBoard.invalidate();
         frame.postDelayed(frameUpdate, FRAME_RATE);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        startService(musicService);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        startService(musicService);
     }
 
     private Point getRandomPoint() {
