@@ -14,7 +14,7 @@ public class MainMenu extends AppCompatActivity {
     }
 
     public void onClick(View view) {
-        Intent intent = new Intent(this, MainGame.class);
+        Intent intent = new Intent(this, Fight.class);
         startActivity(intent);
     }
 }

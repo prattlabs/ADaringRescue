@@ -7,11 +7,11 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import com.prattlabs.adaringrescue.R;
-import com.prattlabs.adaringrescue.actors.Baddie;
-import com.prattlabs.adaringrescue.actors.Player;
+import com.prattlabs.adaringrescue.actors.Actor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,16 +20,16 @@ import java.util.Random;
 public class GameBoard extends View {
     private static final int NUM_OF_STARS = 25;
     AttributeSet aSet;
-    Point playerLocation;
-    Point baddieLocation;
-    private Paint mPaint;
+    private Paint paintBrush;
     private List<Point> starField = null;
     private int starAlpha = 80;
     private int starFade = 2;
-    private Player player;
-    private Baddie baddie;
+    private Actor player;
+    private Actor enemy;
     private Rect baddieBounds;
     private Rect playerBounds;
+    private int canvasWidth;
+    private int canvasHeight;
     //Collision flag and point
     private boolean collisionDetected = false;
     private Point lastCollision = new Point(-1, -1);
@@ -37,30 +37,50 @@ public class GameBoard extends View {
     public GameBoard(Context context, AttributeSet aSet) {
         super(context, aSet);
         this.aSet = aSet;
-        mPaint = new Paint();
-        //load our bitmaps and set the bounds for the controller
-        baddie = new Baddie(context, aSet, R.drawable.asteroid);
-        player = new Player(context, aSet, R.drawable.ufo);
+        paintBrush = new Paint();
         //Define a matrix so we can rotate the asteroid
-        mPaint = new Paint();
-        baddieBounds = baddie.getBounds();
+        paintBrush = new Paint();
+
+        canvasHeight = getHeight();
+        Log.e("Event", "getHeight() = " + getHeight());
+        canvasWidth = getWidth();
+
+        //load our bitmaps and set the bounds for the controller
+        enemy = new Actor(getContext(), aSet, this, R.drawable.baddie);
+        player = new Actor(getContext(), aSet, this, R.drawable.player);
+
+        baddieBounds = enemy.getBounds();
         playerBounds = player.getBounds();
-        playerLocation = player.getLocation();
-        baddieLocation = baddie.getLocation();
     }
 
-    public Player getPlayer() {
+    public int getCanvasHeight() {
+        return canvasHeight;
+    }
+
+    public void setCanvasHeight(int canvasHeight) {
+        this.canvasHeight = canvasHeight;
+    }
+
+    public int getCanvasWidth() {
+        return canvasWidth;
+    }
+
+    public void setCanvasWidth(int canvasWidth) {
+        this.canvasWidth = canvasWidth;
+    }
+
+    public Actor getPlayer() {
         return player;
     }
 
-    public Baddie getBaddie() {
-        return baddie;
+    public Actor getBaddie() {
+        return enemy;
     }
 
     //Allow our controller to get and set the sprite positions
     //sprite 1 setter
     synchronized public void setBaddieLocation(int x, int y) {
-        baddie.setLocation(x, y);
+        enemy.setLocation(x, y);
     }
 
     //sprite 2 setter
@@ -101,38 +121,41 @@ public class GameBoard extends View {
 
     @Override
     synchronized public void onDraw(Canvas canvas) {
-        mPaint.setColor(Color.BLACK);
-        mPaint.setAlpha(255);
-        mPaint.setStrokeWidth(1);
-        canvas.drawRect(0, 0, getWidth(), getHeight(), mPaint);
+
+        paintBrush.setColor(Color.BLACK);
+        paintBrush.setAlpha(255);
+        paintBrush.setStrokeWidth(1);
+        canvas.drawRect(0, 0, getWidth(), getHeight(), paintBrush);
 
         if (starField == null) {
             initializeStars(canvas.getWidth(), canvas.getHeight());
         }
-        mPaint.setColor(Color.CYAN);
-        mPaint.setAlpha(starAlpha += starFade);
+        paintBrush.setColor(Color.CYAN);
+        paintBrush.setAlpha(starAlpha += starFade);
         if (starAlpha >= 252 || starAlpha <= 80)
             starFade = starFade * -1;
-        mPaint.setStrokeWidth(5);
+        paintBrush.setStrokeWidth(5);
         for (int i = 0; i < NUM_OF_STARS; i++) {
-            canvas.drawPoint(starField.get(i).x, starField.get(i).y, mPaint);
+            canvas.drawPoint(starField.get(i).x, starField.get(i).y, paintBrush);
         }
-        if (playerLocation.x >= 0) {
-            canvas.drawBitmap(player.getBitmap(), playerLocation.x, playerLocation.y, null);
+        if (player.getLocation().x >= 0) {
+            canvas.drawBitmap(player.getBitmap(), player.getLocation().x, player.getLocation().y, null);
         }
-
+        if (enemy.getLocation().y >= 0) {
+            canvas.drawBitmap(enemy.getBitmap(), enemy.getLocation().x, enemy.getLocation().y, null);
+        }
         //The last order of business is to check for a collision
-        collisionDetected = checkForCollision();
-        if (collisionDetected) {
-            //if there is one lets draw a red X
-            mPaint.setColor(Color.RED);
-            mPaint.setAlpha(255);
-            mPaint.setStrokeWidth(5);
-            canvas.drawLine(lastCollision.x - 5, lastCollision.y - 5,
-                    lastCollision.x + 5, lastCollision.y + 5, mPaint);
-            canvas.drawLine(lastCollision.x + 5, lastCollision.y - 5,
-                    lastCollision.x - 5, lastCollision.y + 5, mPaint);
-        }
+        //        collisionDetected = checkForCollision();
+        //        if (collisionDetected) {
+        //            //if there is one lets draw a red X
+        //            paintBrush.setColor(Color.RED);
+        //            paintBrush.setAlpha(255);
+        //            paintBrush.setStrokeWidth(5);
+        //            canvas.drawLine(lastCollision.x - 5, lastCollision.y - 5,
+        //                    lastCollision.x + 5, lastCollision.y + 5, paintBrush);
+        //            canvas.drawLine(lastCollision.x + 5, lastCollision.y - 5,
+        //                    lastCollision.x - 5, lastCollision.y + 5, paintBrush);
+        //        }
     }
 
     synchronized private void initializeStars(int maxX, int maxY) {
@@ -147,22 +170,23 @@ public class GameBoard extends View {
     }
 
     private boolean checkForCollision() {
-        if (baddieLocation.x < 0 && playerLocation.x < 0 && baddieLocation.y < 0 && playerLocation.y < 0)
+        if (enemy.getLocation().x < 0 && player.getLocation().x < 0
+                && enemy.getLocation().y < 0 && player.getLocation().y < 0)
             return false;
-        Rect r1 = new Rect(baddieLocation.x, baddieLocation.y, baddieLocation.x
-                + baddieBounds.width(), baddieLocation.y + baddieBounds.height());
-        Rect r2 = new Rect(playerLocation.x, playerLocation.y, playerLocation.x +
-                playerBounds.width(), playerLocation.y + playerBounds.height());
+        Rect r1 = new Rect(enemy.getLocation().x, enemy.getLocation().y, enemy.getLocation().x
+                + baddieBounds.width(), enemy.getLocation().y + baddieBounds.height());
+        Rect r2 = new Rect(player.getLocation().x, player.getLocation().y, player.getLocation().x +
+                playerBounds.width(), player.getLocation().y + playerBounds.height());
         Rect r3 = new Rect(r1);
         if (r1.intersect(r2)) {
             for (int i = r1.left; i < r1.right; i++) {
                 for (int j = r1.top; j < r1.bottom; j++) {
-                    if (baddie.getBitmap().getPixel(i - r3.left, j - r3.top) !=
+                    if (enemy.getBitmap().getPixel(i - r3.left, j - r3.top) !=
                             Color.TRANSPARENT) {
                         if (player.getBitmap().getPixel(i - r2.left, j - r2.top) !=
                                 Color.TRANSPARENT) {
-                            lastCollision = new Point(playerLocation.x +
-                                    i - r2.left, playerLocation.y + j - r2.top);
+                            lastCollision = new Point(player.getLocation().x +
+                                    i - r2.left, player.getLocation().y + j - r2.top);
                             return true;
                         }
                     }
