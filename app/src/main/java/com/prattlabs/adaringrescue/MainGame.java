@@ -22,7 +22,6 @@ import java.util.Random;
 import static com.prattlabs.adaringrescue.Constants.FRAME_RATE;
 
 public class MainGame extends Activity implements OnClickListener {
-    private static final String DEBUG_TAG = "Velocity";
     private Handler frame = new Handler();
     private Actor player;
     private Actor baddie;
@@ -30,47 +29,7 @@ public class MainGame extends Activity implements OnClickListener {
     private GameBoard mGameBoard;
     private Button mButton;
     private VelocityTracker mVelocityTracker = null;
-
-    private Runnable frameUpdate = new Runnable() {
-        @Override
-        synchronized public void run() {
-            if (mGameBoard.wasCollisionDetected()) {
-                Point collisionPoint =
-                        mGameBoard.getLastCollision();
-                if (collisionPoint.x >= 0) {
-                    ((TextView) findViewById(R.id.the_other_label)).setText(
-                            new StringBuilder()
-                                    .append("Last Collision XY(")
-                                    .append(Integer.toString(collisionPoint.x))
-                                    .append(",")
-                                    .append(Integer.toString(collisionPoint.y))
-                                    .append(")")
-                    );
-                }
-                return;
-            }
-            frame.removeCallbacks(frameUpdate);
-            //Add our call to increase or decrease velocity
-            if (player != null) {
-                player.updateVelocity(isAccelerating);
-                //Display UFO speed
-                ((TextView) findViewById(R.id.the_label)).setText(
-                        String.format("Sprite Acceleration(%d, %d), Pos(%d, %d)",
-                                player.getVelocity().x,
-                                player.getVelocity().y,
-                                player.getLocation().x,
-                                player.getLocation().y
-                        )
-                );
-                player.updateLocation();
-            }
-            if (baddie != null) {
-                baddie.updateLocation();
-            }
-            mGameBoard.invalidate();
-            frame.postDelayed(frameUpdate, FRAME_RATE);
-        }
-    };
+    private Runnable frameUpdate = new FrameUpdate();
     private Intent musicService;
 
     @Override
@@ -94,7 +53,7 @@ public class MainGame extends Activity implements OnClickListener {
         if (musicService == null) {
             musicService = new Intent(this, BGMusicService.class);
         }
-        startService(musicService); //OR stopService(svc);
+        startService(musicService);
     }
 
     synchronized public void initGfx() {
@@ -197,5 +156,46 @@ public class MainGame extends Activity implements OnClickListener {
     @Override
     synchronized public void onClick(View v) {
         initGfx();
+    }
+
+    class FrameUpdate implements Runnable {
+        @Override
+        synchronized public void run() {
+            if (mGameBoard.wasCollisionDetected()) {
+                Point collisionPoint =
+                        mGameBoard.getLastCollision();
+                if (collisionPoint.x >= 0) {
+                    ((TextView) findViewById(R.id.the_other_label)).setText(
+                            new StringBuilder()
+                                    .append("Last Collision XY(")
+                                    .append(Integer.toString(collisionPoint.x))
+                                    .append(",")
+                                    .append(Integer.toString(collisionPoint.y))
+                                    .append(")")
+                    );
+                }
+                return;
+            }
+            frame.removeCallbacks(this);
+            //Add our call to increase or decrease velocity
+            if (player != null) {
+                player.updateVelocity(isAccelerating);
+                //Display UFO speed
+                ((TextView) findViewById(R.id.the_label)).setText(
+                        String.format("Sprite Acceleration(%d, %d), Pos(%d, %d)",
+                                player.getVelocity().x,
+                                player.getVelocity().y,
+                                player.getLocation().x,
+                                player.getLocation().y
+                        )
+                );
+                player.updateLocation();
+            }
+            if (baddie != null) {
+                baddie.updateLocation();
+            }
+            mGameBoard.invalidate();
+            frame.postDelayed(this, FRAME_RATE);
+        }
     }
 }

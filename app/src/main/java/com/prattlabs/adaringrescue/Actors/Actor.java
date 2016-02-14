@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 /**
@@ -14,16 +13,12 @@ import android.view.View;
  */
 public class Actor extends View {
 
-    private static final int BMP_ROWS = 4;
-    private static final int BMP_COLUMNS = 3;
     Point location;
     Point velocity;
     Bitmap bitmap;
     Rect bounds;
     int maxX;
     int maxY;
-    private int width = 0;
-    private int height = 0;
 
     public Actor(Context context, AttributeSet aSet) {
         super(context, aSet);
@@ -35,8 +30,6 @@ public class Actor extends View {
         location = new Point(0, 0);
         bounds = new Rect(0, 0, bitmap.getWidth() / 3, bitmap.getHeight() / 4);
         velocity = new Point(2, 2);
-        this.width = bitmap.getWidth() / BMP_COLUMNS;
-        this.height = bitmap.getHeight() / BMP_ROWS;
         maxX = 420;
         maxY = 500;
     }
@@ -45,28 +38,22 @@ public class Actor extends View {
         return bounds;
     }
 
-    public void setBounds(Rect bounds) {
-        this.bounds = bounds;
-    }
-
     public Bitmap getBitmap() {
         return bitmap;
     }
 
-    public void setBitmap(Bitmap bitmap) {
-        this.bitmap = bitmap;
+    public void updateLocation() {
+        bounceOffSideOfCanvas();
+        setLocation(getLocation().x + getVelocity().x, getLocation().y + getVelocity().y);
     }
 
-    public void updateLocation() {
-        Log.e("Event", "maxX = " + maxX);
-        Log.e("Event", "maxY = " + maxY);
+    private void bounceOffSideOfCanvas() {
         if (getLocation().x > maxX || getLocation().x < 5) {
             setVelocity(getVelocity().x *= -1, getVelocity().y);
         }
         if (getLocation().y > maxY || getLocation().y < 5) {
             setVelocity(getVelocity().x, getVelocity().y *= -1);
         }
-        setLocation(getLocation().x + getVelocity().x, getLocation().y + getVelocity().y);
     }
 
     public void setLocation(int x, int y) {
@@ -85,20 +72,8 @@ public class Actor extends View {
         this.velocity = point;
     }
 
-    public int getMaxX() {
-        return maxX;
-    }
-
-    public void setMaxX(int maxX) {
-        this.maxX = maxX;
-    }
-
-    public int getMaxY() {
-        return maxY;
-    }
-
-    public void setMaxY(int maxY) {
-        this.maxY = maxY;
+    public void setVelocity(int x, int y) {
+        this.velocity = new Point(x, y);
     }
 
     public void updateVelocity(boolean isAccelerating) {
@@ -117,9 +92,5 @@ public class Actor extends View {
         if (speed < 1)
             speed = 1;
         setVelocity(speed * xDir, speed * yDir);
-    }
-
-    public void setVelocity(int x, int y) {
-        this.velocity = new Point(x, y);
     }
 }

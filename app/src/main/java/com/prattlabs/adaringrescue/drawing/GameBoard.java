@@ -29,8 +29,6 @@ public class GameBoard extends View {
     private Rect playerBounds;
     private Rect playerDst = new Rect();
     private Rect baddieDst = new Rect();
-    private int canvasWidth;
-    private int canvasHeight;
     //Collision flag and point
     private boolean collisionDetected = false;
     private Point lastCollision = new Point(-1, -1);
@@ -42,31 +40,12 @@ public class GameBoard extends View {
         //Define a matrix so we can rotate the asteroid
         paintBrush = new Paint();
 
-        canvasHeight = getHeight();
-        canvasWidth = getWidth();
-
         //load our bitmaps and set the bounds for the controller
         enemy = new Actor(getContext(), aSet, R.drawable.baddie);
         player = new Actor(getContext(), aSet, R.drawable.player);
 
         baddieBounds = enemy.getBounds();
         playerBounds = player.getBounds();
-    }
-
-    public int getCanvasHeight() {
-        return canvasHeight;
-    }
-
-    public void setCanvasHeight(int canvasHeight) {
-        this.canvasHeight = canvasHeight;
-    }
-
-    public int getCanvasWidth() {
-        return canvasWidth;
-    }
-
-    public void setCanvasWidth(int canvasWidth) {
-        this.canvasWidth = canvasWidth;
     }
 
     public Actor getPlayer() {
@@ -101,14 +80,6 @@ public class GameBoard extends View {
         return baddieBounds.height();
     }
 
-    synchronized public int getPlayerWidth() {
-        return playerBounds.width();
-    }
-
-    synchronized public int getPlayerHeight() {
-        return playerBounds.height();
-    }
-
     //return the point of the last collision
     synchronized public Point getLastCollision() {
         return lastCollision;
@@ -121,12 +92,20 @@ public class GameBoard extends View {
 
     @Override
     synchronized public void onDraw(Canvas canvas) {
+        paintBackground(canvas);
+        paintStars(canvas);
+        drawActors(canvas);
+        paintXOnCollision(canvas);
+    }
 
+    private void paintBackground(Canvas canvas) {
         paintBrush.setColor(Color.BLACK);
         paintBrush.setAlpha(255);
         paintBrush.setStrokeWidth(1);
         canvas.drawRect(0, 0, getWidth(), getHeight(), paintBrush);
+    }
 
+    private void paintStars(Canvas canvas) {
         if (starField == null) {
             initializeStars(canvas.getWidth(), canvas.getHeight());
         }
@@ -138,24 +117,29 @@ public class GameBoard extends View {
         for (int i = 0; i < NUM_OF_STARS; i++) {
             canvas.drawPoint(starField.get(i).x, starField.get(i).y, paintBrush);
         }
+    }
+
+    private void drawActors(Canvas canvas) {
         playerDst.set(player.getLocation().x, player.getLocation().y,
                 player.getLocation().x + 50, player.getLocation().y + 50);
         canvas.drawBitmap(player.getBitmap(), player.getBounds(), playerDst, null);
         baddieDst.set(enemy.getLocation().x, enemy.getLocation().y,
                 enemy.getLocation().x + 50, enemy.getLocation().y + 50);
         canvas.drawBitmap(enemy.getBitmap(), enemy.getBounds(), baddieDst, null);
-        //The last order of business is to check for a collision
-        //        collisionDetected = checkForCollision();
-        //        if (collisionDetected) {
-        //            //if there is one lets draw a red X
-        //            paintBrush.setColor(Color.RED);
-        //            paintBrush.setAlpha(255);
-        //            paintBrush.setStrokeWidth(5);
-        //            canvas.drawLine(lastCollision.x - 5, lastCollision.y - 5,
-        //                    lastCollision.x + 5, lastCollision.y + 5, paintBrush);
-        //            canvas.drawLine(lastCollision.x + 5, lastCollision.y - 5,
-        //                    lastCollision.x - 5, lastCollision.y + 5, paintBrush);
-        //        }
+    }
+
+    private void paintXOnCollision(Canvas canvas) {
+        collisionDetected = checkForCollision();
+        if (collisionDetected) {
+            //if there is one lets draw a red X
+            paintBrush.setColor(Color.RED);
+            paintBrush.setAlpha(255);
+            paintBrush.setStrokeWidth(5);
+            canvas.drawLine(lastCollision.x - 5, lastCollision.y - 5,
+                    lastCollision.x + 5, lastCollision.y + 5, paintBrush);
+            canvas.drawLine(lastCollision.x + 5, lastCollision.y - 5,
+                    lastCollision.x - 5, lastCollision.y + 5, paintBrush);
+        }
     }
 
     synchronized private void initializeStars(int maxX, int maxY) {
