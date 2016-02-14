@@ -58,15 +58,15 @@ public class Actor extends View {
     }
 
     public void updateLocation() {
-        setLocation(getLocation().x + getVelocity().x, getLocation().y + getVelocity().y);
-        if (maxX != 0 && maxY != 0) {
-            if (getLocation().x > maxX || getLocation().x < 5) {
-                getVelocity().x *= -1;
-            }
-            if (getLocation().y > maxY || getLocation().y < 5) {
-                getVelocity().y *= -1;
-            }
+        Log.e("Event", "maxX = " + maxX);
+        Log.e("Event", "maxY = " + maxY);
+        if (getLocation().x > maxX || getLocation().x < 5) {
+            setVelocity(getVelocity().x *= -1, getVelocity().y);
         }
+        if (getLocation().y > maxY || getLocation().y < 5) {
+            setVelocity(getVelocity().x, getVelocity().y *= -1);
+        }
+        setLocation(getLocation().x + getVelocity().x, getLocation().y + getVelocity().y);
     }
 
     public void setLocation(int x, int y) {
