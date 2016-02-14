@@ -7,7 +7,6 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 import com.prattlabs.adaringrescue.R;
@@ -28,6 +27,8 @@ public class GameBoard extends View {
     private Actor enemy;
     private Rect baddieBounds;
     private Rect playerBounds;
+    private Rect playerDst = new Rect();
+    private Rect baddieDst = new Rect();
     private int canvasWidth;
     private int canvasHeight;
     //Collision flag and point
@@ -42,12 +43,11 @@ public class GameBoard extends View {
         paintBrush = new Paint();
 
         canvasHeight = getHeight();
-        Log.e("Event", "getHeight() = " + getHeight());
         canvasWidth = getWidth();
 
         //load our bitmaps and set the bounds for the controller
-        enemy = new Actor(getContext(), aSet, this, R.drawable.baddie);
-        player = new Actor(getContext(), aSet, this, R.drawable.player);
+        enemy = new Actor(getContext(), aSet, R.drawable.baddie);
+        player = new Actor(getContext(), aSet, R.drawable.player);
 
         baddieBounds = enemy.getBounds();
         playerBounds = player.getBounds();
@@ -138,8 +138,12 @@ public class GameBoard extends View {
         for (int i = 0; i < NUM_OF_STARS; i++) {
             canvas.drawPoint(starField.get(i).x, starField.get(i).y, paintBrush);
         }
-        canvas.drawBitmap(player.getBitmap(), player.getLocation().x, player.getLocation().y, null);
-        canvas.drawBitmap(enemy.getBitmap(), enemy.getLocation().x, enemy.getLocation().y, null);
+        playerDst.set(player.getLocation().x, player.getLocation().y,
+                player.getLocation().x + 50, player.getLocation().y + 50);
+        canvas.drawBitmap(player.getBitmap(), player.getBounds(), playerDst, null);
+        baddieDst.set(enemy.getLocation().x, enemy.getLocation().y,
+                enemy.getLocation().x + 50, enemy.getLocation().y + 50);
+        canvas.drawBitmap(enemy.getBitmap(), enemy.getBounds(), baddieDst, null);
         //The last order of business is to check for a collision
         //        collisionDetected = checkForCollision();
         //        if (collisionDetected) {

@@ -6,9 +6,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
-
-import com.prattlabs.adaringrescue.drawing.GameBoard;
 
 /**
  * Created by zppratt on 1/28/16.
@@ -17,32 +16,29 @@ public class Actor extends View {
 
     private static final int BMP_ROWS = 4;
     private static final int BMP_COLUMNS = 3;
-    private int width =0;
-    private int height =0;
     Point location;
     Point velocity;
     Bitmap bitmap;
     Rect bounds;
     int maxX;
     int maxY;
+    private int width = 0;
+    private int height = 0;
 
     public Actor(Context context, AttributeSet aSet) {
         super(context, aSet);
     }
 
-    public Actor(Context context, AttributeSet aSet, GameBoard canvas, int pngId) {
-        this(context, aSet, 20, 20);
+    public Actor(Context context, AttributeSet aSet, int pngId) {
+        super(context, aSet);
         bitmap = BitmapFactory.decodeResource(getResources(), pngId);
-        bounds = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+        location = new Point(0, 0);
+        bounds = new Rect(0, 0, bitmap.getWidth() / 3, bitmap.getHeight() / 4);
+        velocity = new Point(2, 2);
         this.width = bitmap.getWidth() / BMP_COLUMNS;
         this.height = bitmap.getHeight() / BMP_ROWS;
-    }
-
-    public Actor(Context context, AttributeSet aSet, int x, int y) {
-        super(context, aSet);
-        location = new Point(x, y);
-        bounds = new Rect(0, 0, 0, 0);
-        velocity = new Point(2, 2);
+        maxX = 420;
+        maxY = 500;
     }
 
     public Rect getBounds() {

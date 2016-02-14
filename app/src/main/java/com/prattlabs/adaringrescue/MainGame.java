@@ -81,14 +81,20 @@ public class MainGame extends Activity implements OnClickListener {
         mGameBoard = ((GameBoard) findViewById(R.id.the_canvas));
         mButton = ((Button) findViewById(R.id.the_button));
         mButton.setOnClickListener(this);
-        musicService = new Intent(this, BGMusicService.class);
-        startService(musicService); //OR stopService(svc);
+        startMusic();
         h.postDelayed(new Runnable() {
             @Override
             public void run() {
                 initGfx();
             }
         }, 1000);
+    }
+
+    private void startMusic() {
+        if (musicService == null) {
+            musicService = new Intent(this, BGMusicService.class);
+        }
+        startService(musicService); //OR stopService(svc);
     }
 
     synchronized public void initGfx() {
@@ -112,18 +118,6 @@ public class MainGame extends Activity implements OnClickListener {
         frame.postDelayed(frameUpdate, FRAME_RATE);
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        stopService(musicService);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        startService(musicService);
-    }
-
     private Point getRandomPoint() {
         Random r = new Random();
         int minX = 0;
@@ -142,6 +136,18 @@ public class MainGame extends Activity implements OnClickListener {
         int x = r.nextInt(max - min + 1) + min;
         int y = r.nextInt(max - min + 1) + min;
         return new Point(x, y);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopService(musicService);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        startMusic();
     }
 
     //Method for getting touch state—requires android 2.1 or greater
