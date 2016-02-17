@@ -32,6 +32,7 @@ public class GameBoard extends View {
     //Collision flag and point
     private boolean collisionDetected = false;
     private Point lastCollision = new Point(-1, -1);
+    private Canvas canvas;
 
     public GameBoard(Context context, AttributeSet aSet) {
         super(context, aSet);
@@ -46,6 +47,10 @@ public class GameBoard extends View {
 
         baddieBounds = enemy.getBounds();
         playerBounds = player.getBounds();
+    }
+
+    public Canvas getCanvas() {
+        return canvas;
     }
 
     public Actor getPlayer() {
@@ -92,6 +97,9 @@ public class GameBoard extends View {
 
     @Override
     synchronized public void onDraw(Canvas canvas) {
+        if (this.canvas == null) {
+            this.canvas = canvas;
+        }
         paintBackground(canvas);
         paintStars(canvas);
         drawActors(canvas);

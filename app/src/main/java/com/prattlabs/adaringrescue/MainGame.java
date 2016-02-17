@@ -53,7 +53,7 @@ public class MainGame extends Activity implements OnClickListener {
         if (musicService == null) {
             musicService = new Intent(this, BGMusicService.class);
         }
-        startService(musicService);
+        //startService(musicService);
     }
 
     synchronized public void initGfx() {
@@ -189,10 +189,10 @@ public class MainGame extends Activity implements OnClickListener {
                                 player.getLocation().y
                         )
                 );
-                player.updateLocation();
+                player.updateLocation(mGameBoard);
             }
             if (baddie != null) {
-                baddie.updateLocation();
+                baddie.updateLocation(mGameBoard);
             }
             mGameBoard.invalidate();
             frame.postDelayed(this, FRAME_RATE);

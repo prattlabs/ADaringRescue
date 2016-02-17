@@ -8,6 +8,8 @@ import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
 
+import com.prattlabs.adaringrescue.drawing.GameBoard;
+
 /**
  * Created by zppratt on 1/28/16.
  */
@@ -17,8 +19,6 @@ public class Actor extends View {
     Point velocity;
     Bitmap bitmap;
     Rect bounds;
-    int maxX;
-    int maxY;
 
     public Actor(Context context, AttributeSet aSet) {
         super(context, aSet);
@@ -27,11 +27,9 @@ public class Actor extends View {
     public Actor(Context context, AttributeSet aSet, int pngId) {
         super(context, aSet);
         bitmap = BitmapFactory.decodeResource(getResources(), pngId);
-        location = new Point(0, 0);
+        location = new Point(-100, -100);
         bounds = new Rect(0, 0, bitmap.getWidth() / 3, bitmap.getHeight() / 4);
         velocity = new Point(2, 2);
-        maxX = 420;
-        maxY = 500;
     }
 
     public Rect getBounds() {
@@ -42,16 +40,16 @@ public class Actor extends View {
         return bitmap;
     }
 
-    public void updateLocation() {
-        bounceOffSideOfCanvas();
+    public void updateLocation(GameBoard gameBoard) {
+        bounceOffSideOfCanvas(gameBoard);
         setLocation(getLocation().x + getVelocity().x, getLocation().y + getVelocity().y);
     }
 
-    private void bounceOffSideOfCanvas() {
-        if (getLocation().x > maxX || getLocation().x < 5) {
+    private void bounceOffSideOfCanvas(GameBoard gameBoard) {
+        if (getLocation().x > gameBoard.getCanvas().getWidth() - bitmap.getWidth()/2 || getLocation().x < 5) {
             setVelocity(getVelocity().x *= -1, getVelocity().y);
         }
-        if (getLocation().y > maxY || getLocation().y < 5) {
+        if (getLocation().y > gameBoard.getCanvas().getHeight() - bitmap.getHeight()/2 || getLocation().y < 5) {
             setVelocity(getVelocity().x, getVelocity().y *= -1);
         }
     }
