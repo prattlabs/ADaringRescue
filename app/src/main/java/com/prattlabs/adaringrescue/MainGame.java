@@ -5,12 +5,9 @@ import android.content.Intent;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.view.VelocityTrackerCompat;
-import android.util.Log;
+import android.support.v4.view.GestureDetectorCompat;
 import android.view.MotionEvent;
-import android.view.VelocityTracker;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -19,16 +16,18 @@ import com.prattlabs.adaringrescue.drawing.GameBoard;
 
 import java.util.Random;
 
+import static android.view.GestureDetector.OnGestureListener;
+import static android.view.View.OnClickListener;
 import static com.prattlabs.adaringrescue.Constants.FRAME_RATE;
 
-public class MainGame extends Activity implements OnClickListener {
+public class MainGame extends Activity implements OnClickListener, OnGestureListener {
     private Handler frame = new Handler();
     private Actor player;
     private Actor baddie;
     private boolean isAccelerating = false;
     private GameBoard mGameBoard;
     private Button mButton;
-    private VelocityTracker mVelocityTracker = null;
+    private GestureDetectorCompat mDetector;
     private Runnable frameUpdate = new FrameUpdate();
     private Intent musicService;
 
@@ -38,6 +37,7 @@ public class MainGame extends Activity implements OnClickListener {
         setContentView(R.layout.activity_main_game);
         Handler h = new Handler();
         mGameBoard = ((GameBoard) findViewById(R.id.the_canvas));
+        mDetector = new GestureDetectorCompat(this, this);
         mButton = ((Button) findViewById(R.id.the_button));
         mButton.setOnClickListener(this);
         startMusic();
@@ -58,6 +58,7 @@ public class MainGame extends Activity implements OnClickListener {
 
     synchronized public void initGfx() {
         player = mGameBoard.getPlayer();
+        player.setVelocity(1, 1);
         baddie = mGameBoard.getBaddie();
         mGameBoard.resetStarField();
         Point randomPoint1, randomPoint2;
@@ -69,7 +70,7 @@ public class MainGame extends Activity implements OnClickListener {
         mGameBoard.setBaddieLocation(randomPoint1.x, randomPoint1.y);
         mGameBoard.setPlayerLocation(randomPoint2.x, randomPoint2.y);
         if (baddie != null) {
-            baddie.setVelocity(getRandomVelocity());
+            baddie.setVelocity(1, 1);
         }
         findViewById(R.id.the_button).setEnabled(true);
         frame.removeCallbacks(frameUpdate);
@@ -98,6 +99,13 @@ public class MainGame extends Activity implements OnClickListener {
     }
 
     @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        this.mDetector.onTouchEvent(event);
+        // Be sure to call the superclass implementation
+        return super.onTouchEvent(event);
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
         stopService(musicService);
@@ -109,53 +117,56 @@ public class MainGame extends Activity implements OnClickListener {
         startMusic();
     }
 
-    //Method for getting touch state—requires android 2.1 or greater
     @Override
-    synchronized public boolean onTouchEvent(MotionEvent event) {
-        int index = event.getActionIndex();
-        int action = event.getActionMasked();
-        int pointerId = event.getPointerId(index);
-
-        switch (action) {
-            case MotionEvent.ACTION_DOWN:
-                if (mVelocityTracker == null) {
-                    // Retrieve a new VelocityTracker object to watch the velocity of a motion.
-                    mVelocityTracker = VelocityTracker.obtain();
-                } else {
-                    // Reset the velocity tracker back to its initial state.
-                    mVelocityTracker.clear();
-                }
-                // Add a user's movement to the tracker.
-                mVelocityTracker.addMovement(event);
-                break;
-            case MotionEvent.ACTION_MOVE:
-                mVelocityTracker.addMovement(event);
-                // When you want to determine the velocity, call
-                // computeCurrentVelocity(). Then call getXVelocity()
-                // and getYVelocity() to retrieve the velocity for each pointer ID.
-                mVelocityTracker.computeCurrentVelocity(1000);
-                // Log velocity of pixels per second
-                // Best practice to use VelocityTrackerCompat where possible.
-                Log.e("", "X velocity: " +
-                        VelocityTrackerCompat.getXVelocity(mVelocityTracker,
-                                pointerId));
-                Log.e("", "Y velocity: " +
-                        VelocityTrackerCompat.getYVelocity(mVelocityTracker,
-                                pointerId));
-                break;
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
-                // Return a VelocityTracker object back to be re-used by others.
-                mVelocityTracker.recycle();
-                mVelocityTracker = null;
-                break;
-        }
-        return true;
+    public boolean onDown(MotionEvent e) {
+        return false;
     }
 
     @Override
+    public void onShowPress(MotionEvent e) {
+
+    }
+
     synchronized public void onClick(View v) {
         initGfx();
+    }
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        return false;
+    }
+
+    @Override
+    public void onLongPress(MotionEvent e) {
+
+    }
+
+    @Override
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        int x = ((Float) velocityX).intValue() / 100;
+        int y = ((Float) velocityY).intValue() / 100;
+        int maxVel = 3;
+        if (Math.abs(x) > maxVel) {
+            if (x > 0) {
+                x = maxVel;
+            } else {
+                x = -maxVel;
+            }
+        }
+        if (Math.abs(y) > maxVel) {
+            if (y > 0) {
+                y = maxVel;
+            } else {
+                y = -maxVel;
+            }
+        }
+        player.setVelocity(x, y);
+        return false;
     }
 
     class FrameUpdate implements Runnable {
@@ -179,8 +190,7 @@ public class MainGame extends Activity implements OnClickListener {
             frame.removeCallbacks(this);
             //Add our call to increase or decrease velocity
             if (player != null) {
-                player.updateVelocity(isAccelerating);
-                //Display UFO speed
+                //                player.updateVelocity(isAccelerating);
                 ((TextView) findViewById(R.id.the_label)).setText(
                         String.format("Sprite Acceleration(%d, %d), Pos(%d, %d)",
                                 player.getVelocity().x,
