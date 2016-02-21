@@ -5,7 +5,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.PointF;
 import android.graphics.Rect;
+import android.graphics.RectF;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -16,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import static java.lang.Math.round;
+
 public class GameBoard extends View {
     private static final int NUM_OF_STARS = 25;
     AttributeSet aSet;
@@ -25,13 +30,13 @@ public class GameBoard extends View {
     private int starFade = 2;
     private Actor player;
     private Actor enemy;
-    private Rect baddieBounds;
-    private Rect playerBounds;
-    private Rect playerDst = new Rect();
-    private Rect baddieDst = new Rect();
+    private RectF baddieBounds;
+    private RectF playerBounds;
+    private RectF playerDst = new RectF();
+    private RectF baddieDst = new RectF();
     //Collision flag and point
     private boolean collisionDetected = false;
-    private Point lastCollision = new Point(-1, -1);
+    private PointF lastCollision = new PointF(-1F, -1F);
     private Canvas canvas;
 
     public GameBoard(Context context, AttributeSet aSet) {
@@ -61,15 +66,8 @@ public class GameBoard extends View {
         return enemy;
     }
 
-    //Allow our controller to get and set the sprite positions
-    //sprite 1 setter
-    synchronized public void setBaddieLocation(int x, int y) {
-        enemy.setLocation(x, y);
-    }
-
-    //sprite 2 setter
-    synchronized public void setPlayerLocation(int x, int y) {
-        player.setLocation(x, y);
+    synchronized public void setActorLocation(Actor actor, float x, float y) {
+        actor.setLocation(x, y);
     }
 
     synchronized public void resetStarField() {
@@ -77,16 +75,16 @@ public class GameBoard extends View {
     }
 
     //expose sprite bounds to controller
-    synchronized public int getBaddieWidth() {
+    synchronized public float getBaddieWidth() {
         return baddieBounds.width();
     }
 
-    synchronized public int getBaddieHeight() {
+    synchronized public float getBaddieHeight() {
         return baddieBounds.height();
     }
 
     //return the point of the last collision
-    synchronized public Point getLastCollision() {
+    synchronized public PointF getLastCollision() {
         return lastCollision;
     }
 
@@ -130,10 +128,10 @@ public class GameBoard extends View {
     private void drawActors(Canvas canvas) {
         playerDst.set(player.getLocation().x, player.getLocation().y,
                 player.getLocation().x + 50, player.getLocation().y + 50);
-        canvas.drawBitmap(player.getBitmap(), player.getBounds(), playerDst, null);
+        canvas.drawBitmap(player.getBitmap(), approximateBounds(player), playerDst, null);
         baddieDst.set(enemy.getLocation().x, enemy.getLocation().y,
                 enemy.getLocation().x + 50, enemy.getLocation().y + 50);
-        canvas.drawBitmap(enemy.getBitmap(), enemy.getBounds(), baddieDst, null);
+        canvas.drawBitmap(enemy.getBitmap(), approximateBounds(enemy), baddieDst, null);
     }
 
     private void paintXOnCollision(Canvas canvas) {
@@ -161,23 +159,31 @@ public class GameBoard extends View {
         collisionDetected = false;
     }
 
+    @NonNull
+    private Rect approximateBounds(Actor actor) {
+        return new Rect(round(actor.getBounds().left),
+                round(actor.getBounds().top),
+                round(actor.getBounds().right),
+                round(actor.getBounds().bottom));
+    }
+
     private boolean checkForCollision() {
         if (enemy.getLocation().x < 0 && player.getLocation().x < 0
                 && enemy.getLocation().y < 0 && player.getLocation().y < 0)
             return false;
-        Rect r1 = new Rect(enemy.getLocation().x, enemy.getLocation().y, enemy.getLocation().x
+        RectF r1 = new RectF(enemy.getLocation().x, enemy.getLocation().y, enemy.getLocation().x
                 + baddieBounds.width(), enemy.getLocation().y + baddieBounds.height());
-        Rect r2 = new Rect(player.getLocation().x, player.getLocation().y, player.getLocation().x +
+        RectF r2 = new RectF(player.getLocation().x, player.getLocation().y, player.getLocation().x +
                 playerBounds.width(), player.getLocation().y + playerBounds.height());
-        Rect r3 = new Rect(r1);
+        RectF r3 = new RectF(r1);
         if (r1.intersect(r2)) {
-            for (int i = r1.left; i < r1.right; i++) {
-                for (int j = r1.top; j < r1.bottom; j++) {
-                    if (enemy.getBitmap().getPixel(i - r3.left, j - r3.top) !=
+            for (int i = round(r1.left); i < round(r1.right); i++) {
+                for (int j = round(r1.top); j < round(r1.bottom); j++) {
+                    if (enemy.getBitmap().getPixel(i - round(r3.left), j - round(r3.top)) !=
                             Color.TRANSPARENT) {
-                        if (player.getBitmap().getPixel(i - r2.left, j - r2.top) !=
+                        if (player.getBitmap().getPixel(i - round(r2.left), j - round(r2.top)) !=
                                 Color.TRANSPARENT) {
-                            lastCollision = new Point(player.getLocation().x +
+                            lastCollision = new PointF(player.getLocation().x +
                                     i - r2.left, player.getLocation().y + j - r2.top);
                             return true;
                         }
@@ -185,7 +191,7 @@ public class GameBoard extends View {
                 }
             }
         }
-        lastCollision = new Point(-1, -1);
+        lastCollision = new PointF(-1F, -1F);
         return false;
     }
 }

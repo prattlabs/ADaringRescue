@@ -3,6 +3,7 @@ package com.prattlabs.adaringrescue;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Point;
+import android.graphics.PointF;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.view.GestureDetectorCompat;
@@ -61,14 +62,14 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
         player.setVelocity(1, 1);
         baddie = mGameBoard.getBaddie();
         mGameBoard.resetStarField();
-        Point randomPoint1, randomPoint2;
+        PointF randomPoint1, randomPoint2;
         do {
             randomPoint1 = getRandomPoint();
             randomPoint2 = getRandomPoint();
         } while (Math.abs(randomPoint1.x - randomPoint2.x) <
                 mGameBoard.getBaddieWidth());
-        mGameBoard.setBaddieLocation(randomPoint1.x, randomPoint1.y);
-        mGameBoard.setPlayerLocation(randomPoint2.x, randomPoint2.y);
+        mGameBoard.setActorLocation(player, randomPoint1.x, randomPoint1.y);
+        mGameBoard.setActorLocation(baddie, randomPoint2.x, randomPoint2.y);
         if (baddie != null) {
             baddie.setVelocity(1, 1);
         }
@@ -78,15 +79,13 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
         frame.postDelayed(frameUpdate, FRAME_RATE);
     }
 
-    private Point getRandomPoint() {
+    private PointF getRandomPoint() {
+        float maxX = mGameBoard.getWidth() - mGameBoard.getBaddieWidth();
+        float maxY = mGameBoard.getHeight() - mGameBoard.getBaddieHeight();
         Random r = new Random();
-        int minX = 0;
-        int minY = 0;
-        int maxX = mGameBoard.getWidth() - mGameBoard.getBaddieWidth();
-        int maxY = mGameBoard.getHeight() - mGameBoard.getBaddieHeight();
-        int x = r.nextInt(maxX - minX + 1) + minX;
-        int y = r.nextInt(maxY - minY + 1) + minY;
-        return new Point(x, y);
+        float x = r.nextInt(((int) maxX) + 1);
+        float y = r.nextInt(((int) maxY) + 1);
+        return new PointF(x, y);
     }
 
     private Point getRandomVelocity() {
@@ -119,6 +118,9 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
 
     @Override
     public boolean onDown(MotionEvent e) {
+        float destX = e.getX();
+        float destY = e.getY();
+        player.moveToDest(destX, destY);
         return false;
     }
 
@@ -173,15 +175,15 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
         @Override
         synchronized public void run() {
             if (mGameBoard.wasCollisionDetected()) {
-                Point collisionPoint =
+                PointF collisionPoint =
                         mGameBoard.getLastCollision();
                 if (collisionPoint.x >= 0) {
                     ((TextView) findViewById(R.id.the_other_label)).setText(
                             new StringBuilder()
                                     .append("Last Collision XY(")
-                                    .append(Integer.toString(collisionPoint.x))
+                                    .append(Float.toString(collisionPoint.x))
                                     .append(",")
-                                    .append(Integer.toString(collisionPoint.y))
+                                    .append(Float.toString(collisionPoint.y))
                                     .append(")")
                     );
                 }
@@ -192,7 +194,7 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
             if (player != null) {
                 //                player.updateVelocity(isAccelerating);
                 ((TextView) findViewById(R.id.the_label)).setText(
-                        String.format("Sprite Acceleration(%d, %d), Pos(%d, %d)",
+                        String.format("Sprite Acceleration(%.2f, %.2f), Pos(%.2f, %.2f)",
                                 player.getVelocity().x,
                                 player.getVelocity().y,
                                 player.getLocation().x,
