@@ -19,8 +19,6 @@
             android:name=".MainGame"
             android:label="@string/title_activity_main_game"
             android:theme="@style/AppTheme.NoActionBar"/>
-        <activity android:name=".Fight">
-        </activity>
 
         <service
             android:name=".BGMusicService"

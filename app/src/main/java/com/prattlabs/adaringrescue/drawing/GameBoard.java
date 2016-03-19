@@ -34,7 +34,6 @@ public class GameBoard extends View {
     private RectF playerBounds;
     private RectF playerDst = new RectF();
     private RectF baddieDst = new RectF();
-    //Collision flag and point
     private boolean collisionDetected = false;
     private PointF lastCollision = new PointF(-1F, -1F);
     private Canvas canvas;
@@ -43,10 +42,7 @@ public class GameBoard extends View {
         super(context, aSet);
         this.aSet = aSet;
         paintBrush = new Paint();
-        //Define a matrix so we can rotate the asteroid
-        paintBrush = new Paint();
 
-        //load our bitmaps and set the bounds for the controller
         enemy = new Actor(getContext(), aSet, R.drawable.baddie);
         player = new Actor(getContext(), aSet, R.drawable.player);
 
@@ -74,7 +70,6 @@ public class GameBoard extends View {
         starField = null;
     }
 
-    //expose sprite bounds to controller
     synchronized public float getBaddieWidth() {
         return baddieBounds.width();
     }
@@ -83,12 +78,10 @@ public class GameBoard extends View {
         return baddieBounds.height();
     }
 
-    //return the point of the last collision
     synchronized public PointF getLastCollision() {
         return lastCollision;
     }
 
-    //return the collision flag
     synchronized public boolean wasCollisionDetected() {
         return collisionDetected;
     }
@@ -137,7 +130,6 @@ public class GameBoard extends View {
     private void paintXOnCollision(Canvas canvas) {
         collisionDetected = checkForCollision();
         if (collisionDetected) {
-            //if there is one lets draw a red X
             paintBrush.setColor(Color.RED);
             paintBrush.setAlpha(255);
             paintBrush.setStrokeWidth(5);

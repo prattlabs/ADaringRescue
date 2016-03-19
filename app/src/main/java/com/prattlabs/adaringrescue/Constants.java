@@ -5,6 +5,4 @@ package com.prattlabs.adaringrescue;
  */
 public interface Constants {
     int FRAME_RATE = 17; //1000/20 = 50 frames per second
-    int GAME_WIDTH = 420;
-    int GAME_HEIGHT = 720;
 }

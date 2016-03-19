@@ -17,7 +17,7 @@ public class BGMusicService extends Service {
     public void onCreate() {
         super.onCreate();
         player = MediaPlayer.create(this, R.raw.coolnight);
-        player.setLooping(true); // Set looping
+        player.setLooping(true);
         player.setVolume(100, 100);
 
     }

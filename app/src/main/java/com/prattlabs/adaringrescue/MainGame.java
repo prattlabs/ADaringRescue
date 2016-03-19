@@ -2,7 +2,6 @@ package com.prattlabs.adaringrescue;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Point;
 import android.graphics.PointF;
 import android.os.Bundle;
 import android.os.Handler;
@@ -25,7 +24,6 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
     private Handler frame = new Handler();
     private Actor player;
     private Actor baddie;
-    private boolean isAccelerating = false;
     private GameBoard mGameBoard;
     private Button mButton;
     private GestureDetectorCompat mDetector;
@@ -88,19 +86,9 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
         return new PointF(x, y);
     }
 
-    private Point getRandomVelocity() {
-        Random r = new Random();
-        int min = 1;
-        int max = 5;
-        int x = r.nextInt(max - min + 1) + min;
-        int y = r.nextInt(max - min + 1) + min;
-        return new Point(x, y);
-    }
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         this.mDetector.onTouchEvent(event);
-        // Be sure to call the superclass implementation
         return super.onTouchEvent(event);
     }
 
@@ -190,9 +178,7 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
                 return;
             }
             frame.removeCallbacks(this);
-            //Add our call to increase or decrease velocity
             if (player != null) {
-                //                player.updateVelocity(isAccelerating);
                 ((TextView) findViewById(R.id.the_label)).setText(
                         String.format("Sprite Acceleration(%.2f, %.2f), Pos(%.2f, %.2f)",
                                 player.getVelocity().x,

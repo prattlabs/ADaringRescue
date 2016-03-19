@@ -10,9 +10,6 @@ import android.view.View;
 
 import com.prattlabs.adaringrescue.drawing.GameBoard;
 
-/**
- * Created by zppratt on 1/28/16.
- */
 public class Actor extends View {
 
     PointF location;
@@ -66,30 +63,8 @@ public class Actor extends View {
         return velocity;
     }
 
-    public void setVelocity(PointF point) {
-        this.velocity = point;
-    }
-
     public void setVelocity(float x, float y) {
         this.velocity = new PointF(x, y);
-    }
-
-    public void updateVelocity(boolean isAccelerating) {
-        //Increase the velocity towards five or decrease
-        //back to one depending on state
-        int xDir = (getVelocity().x > 0) ? 1 : -1;
-        int yDir = (getVelocity().y > 0) ? 1 : -1;
-        float speed;
-        if (isAccelerating) {
-            speed = Math.abs(getVelocity().x) + 1;
-        } else {
-            speed = Math.abs(getVelocity().x) - 1;
-        }
-        if (speed > 5)
-            speed = 5;
-        if (speed < 1)
-            speed = 1;
-        setVelocity(speed * xDir, speed * yDir);
     }
 
     public void moveToDest(float destX, float destY) {
