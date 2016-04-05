@@ -6,9 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PointF;
-import android.graphics.Rect;
 import android.graphics.RectF;
-import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -32,8 +30,6 @@ public class GameBoard extends View {
     private Actor enemy;
     private RectF baddieBounds;
     private RectF playerBounds;
-    private RectF playerDst = new RectF();
-    private RectF baddieDst = new RectF();
     private boolean collisionDetected = false;
     private PointF lastCollision = new PointF(-1F, -1F);
     private Canvas canvas;
@@ -119,12 +115,30 @@ public class GameBoard extends View {
     }
 
     private void drawActors(Canvas canvas) {
-        playerDst.set(player.getLocation().x, player.getLocation().y,
-                player.getLocation().x + 50, player.getLocation().y + 50);
-        canvas.drawBitmap(player.getBitmap(), approximateBounds(player), playerDst, null);
-        baddieDst.set(enemy.getLocation().x, enemy.getLocation().y,
-                enemy.getLocation().x + 50, enemy.getLocation().y + 50);
-        canvas.drawBitmap(enemy.getBitmap(), approximateBounds(enemy), baddieDst, null);
+        //TODO Create animations here
+        player.drawActor(canvas);
+        enemy.drawActor(canvas);
+
+        // Draws X's on the actors for debugging
+        paintBrush.setColor(Color.RED);
+        paintBrush.setAlpha(255);
+        paintBrush.setStrokeWidth(5);
+
+        canvas.drawLine(getPlayer().getLocation().x - 5, getPlayer().getLocation().y - 5,
+                getPlayer().getLocation().x + 5, getPlayer().getLocation().y + 5, paintBrush);
+        canvas.drawLine(getPlayer().getLocation().x + 5, getPlayer().getLocation().y - 5,
+                getPlayer().getLocation().x - 5, getPlayer().getLocation().y + 5, paintBrush);
+
+        canvas.drawLine(getPlayer().getLeft() - 5, getPlayer().getLeft() - 5,
+                getPlayer().getLeft() + 5, getPlayer().getLeft() + 5, paintBrush);
+        canvas.drawLine(getPlayer().getLeft() + 5, getPlayer().getLeft() - 5,
+                getPlayer().getLeft() - 5, getPlayer().getLeft() + 5, paintBrush);
+
+        paintBrush.setColor(Color.YELLOW);
+        canvas.drawLine(enemy.getLocation().x - 5, enemy.getLocation().y - 5,
+                enemy.getLocation().x + 5, enemy.getLocation().y + 5, paintBrush);
+        canvas.drawLine(enemy.getLocation().x + 5, enemy.getLocation().y - 5,
+                enemy.getLocation().x - 5, enemy.getLocation().y + 5, paintBrush);
     }
 
     private void paintXOnCollision(Canvas canvas) {
@@ -149,14 +163,6 @@ public class GameBoard extends View {
             starField.add(new Point(x, y));
         }
         collisionDetected = false;
-    }
-
-    @NonNull
-    private Rect approximateBounds(Actor actor) {
-        return new Rect(round(actor.getBounds().left),
-                round(actor.getBounds().top),
-                round(actor.getBounds().right),
-                round(actor.getBounds().bottom));
     }
 
     private boolean checkForCollision() {

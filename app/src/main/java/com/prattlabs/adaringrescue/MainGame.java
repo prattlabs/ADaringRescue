@@ -106,9 +106,6 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
 
     @Override
     public boolean onDown(MotionEvent e) {
-        float destX = e.getX();
-        float destY = e.getY();
-        player.moveToDest(destX, destY);
         return false;
     }
 
@@ -156,7 +153,7 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
             }
         }
         player.setVelocity(x, y);
-        return false;
+        return true;
     }
 
     class FrameUpdate implements Runnable {
@@ -178,7 +175,7 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
                 return;
             }
             frame.removeCallbacks(this);
-            if (player != null) {
+            if (player != null) { // TODO fix problem that necessitates this
                 ((TextView) findViewById(R.id.the_label)).setText(
                         String.format("Sprite Acceleration(%.2f, %.2f), Pos(%.2f, %.2f)",
                                 player.getVelocity().x,
@@ -189,7 +186,7 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
                 );
                 player.updateLocation(mGameBoard);
             }
-            if (baddie != null) {
+            if (baddie != null) { // TODO ...and this
                 baddie.updateLocation(mGameBoard);
             }
             mGameBoard.invalidate();
