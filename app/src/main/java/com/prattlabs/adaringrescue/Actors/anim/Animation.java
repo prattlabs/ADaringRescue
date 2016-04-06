@@ -38,14 +38,11 @@ public class Animation {
     }
 
     /**
-     * Gets the next frame in the animation as a RectF.  Will increment to next frame on every call.
+     * Gets the next frame in the animation as a RectF.
      * @return The next frame in the animation
      */
     public RectF getNextFrame() {
-        // Loop to beginning of animation when end is reached
-        // TODO have a flag for looping?
-
-        tempSpeed--;
+        tempSpeed--; // once this reaches zero, the animation advances a frame
         if (tempSpeed == 0) {
             tempSpeed = speed;
             // If on the first frame, go toward last frame
@@ -64,17 +61,6 @@ public class Animation {
         } else {
             return frames[currentFrame];
         }
-    }
-
-    /**
-     * Gets the current animation frame
-     * @return the current animation frame
-     */
-    public RectF getCurrentFrame() {
-        if (currentFrame >= frames.length) {
-            currentFrame = 0;
-        }
-        return frames[currentFrame];
     }
 
     private enum BackForth {

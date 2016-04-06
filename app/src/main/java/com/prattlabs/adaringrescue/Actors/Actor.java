@@ -46,7 +46,6 @@ public class Actor extends View {
         map = new SpriteMap(bitmap, 4, 3);
         setupAnimations();
 
-        // TODO delete?
         bounds = new RectF(0, 0, bitmap.getWidth() / 3, bitmap.getHeight() / 4);
         location = new PointF(-100F, -100F);
         velocity = new PointF(2F, 2F);

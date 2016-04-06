@@ -115,30 +115,8 @@ public class GameBoard extends View {
     }
 
     private void drawActors(Canvas canvas) {
-        //TODO Create animations here
         player.drawActor(canvas);
         enemy.drawActor(canvas);
-
-        // Draws X's on the actors for debugging
-        paintBrush.setColor(Color.RED);
-        paintBrush.setAlpha(255);
-        paintBrush.setStrokeWidth(5);
-
-        canvas.drawLine(getPlayer().getLocation().x - 5, getPlayer().getLocation().y - 5,
-                getPlayer().getLocation().x + 5, getPlayer().getLocation().y + 5, paintBrush);
-        canvas.drawLine(getPlayer().getLocation().x + 5, getPlayer().getLocation().y - 5,
-                getPlayer().getLocation().x - 5, getPlayer().getLocation().y + 5, paintBrush);
-
-        canvas.drawLine(getPlayer().getLeft() - 5, getPlayer().getLeft() - 5,
-                getPlayer().getLeft() + 5, getPlayer().getLeft() + 5, paintBrush);
-        canvas.drawLine(getPlayer().getLeft() + 5, getPlayer().getLeft() - 5,
-                getPlayer().getLeft() - 5, getPlayer().getLeft() + 5, paintBrush);
-
-        paintBrush.setColor(Color.YELLOW);
-        canvas.drawLine(enemy.getLocation().x - 5, enemy.getLocation().y - 5,
-                enemy.getLocation().x + 5, enemy.getLocation().y + 5, paintBrush);
-        canvas.drawLine(enemy.getLocation().x + 5, enemy.getLocation().y - 5,
-                enemy.getLocation().x - 5, enemy.getLocation().y + 5, paintBrush);
     }
 
     private void paintXOnCollision(Canvas canvas) {

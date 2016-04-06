@@ -45,7 +45,7 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
             public void run() {
                 initGfx();
             }
-        }, 1000);
+        }, 1);
     }
 
     private void startMusic() {
@@ -114,6 +114,11 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
 
     }
 
+    /**
+     * Basically just handles the event from the "reset" button.
+     *
+     * @param v the button or view to handle
+     */
     synchronized public void onClick(View v) {
         initGfx();
     }
@@ -130,7 +135,6 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
 
     @Override
     public void onLongPress(MotionEvent e) {
-
     }
 
     @Override
@@ -152,7 +156,8 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
                 y = -maxVel;
             }
         }
-        if (player != null) player.setVelocity(x, y);
+        if (player != null)
+            player.setVelocity(x, y);
         return true;
     }
 
