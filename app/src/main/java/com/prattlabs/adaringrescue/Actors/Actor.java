@@ -22,6 +22,7 @@ import static com.prattlabs.adaringrescue.Constants.WALK_DOWN;
 import static com.prattlabs.adaringrescue.Constants.WALK_LEFT;
 import static com.prattlabs.adaringrescue.Constants.WALK_RIGHT;
 import static com.prattlabs.adaringrescue.Constants.WALK_UP;
+import static java.lang.Math.abs;
 import static java.lang.Math.round;
 
 public class Actor extends View {
@@ -95,18 +96,23 @@ public class Actor extends View {
      * @param canvas The canvas to draw to.
      */
     public void drawActor(Canvas canvas) {
-        // If player is walking down
-        if (getVelocity().y < 0)
-            currentAnimation = animations.get(WALK_DOWN);
-        // If player is walking left
-        if (getVelocity().x < 0)
-            currentAnimation = animations.get(WALK_LEFT);
-        // If player is walking right
-        if (getVelocity().x > 0)
-            currentAnimation = animations.get(WALK_RIGHT);
-        // If player is walking up
-        if (getVelocity().y > 0)
-            currentAnimation = animations.get(WALK_UP);
+        // If the player is moving more sideways then vertical play a sideways animation,
+        // otherwise play a vertical animation.
+        if (abs(getVelocity().x) > abs(getVelocity().y)) {
+            // If player is walking left
+            if (getVelocity().x < 0)
+                currentAnimation = animations.get(WALK_LEFT);
+            // If player is walking right
+            else
+                currentAnimation = animations.get(WALK_RIGHT);
+        } else {
+            // If player is walking down
+            if (getVelocity().y < 0)
+                currentAnimation = animations.get(WALK_UP);
+            // If player is walking up
+            else
+                currentAnimation = animations.get(WALK_DOWN);
+        }
         canvas.drawBitmap(getBitmap(), source(), destination(), null);
     }
 
@@ -117,8 +123,8 @@ public class Actor extends View {
     private RectF destination() {
         return new RectF(getLocation().x,
                 getLocation().y,
-                getLocation().x + 50,
-                getLocation().y + 50
+                getLocation().x + 75,
+                getLocation().y + 75
         );
     }
 

@@ -135,8 +135,8 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        int x = ((Float) velocityX).intValue() / 100;
-        int y = ((Float) velocityY).intValue() / 100;
+        int x = ((Float) velocityX).intValue() / 1000;
+        int y = ((Float) velocityY).intValue() / 1000;
         int maxVel = 3;
         if (Math.abs(x) > maxVel) {
             if (x > 0) {
@@ -152,7 +152,7 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
                 y = -maxVel;
             }
         }
-        player.setVelocity(x, y);
+        if (player != null) player.setVelocity(x, y);
         return true;
     }
 
