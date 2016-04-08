@@ -1,5 +1,7 @@
 package com.prattlabs.adaringrescue;
 
+import android.graphics.Color;
+
 /**
  * Created by zppratt on 2/9/16.
  */
@@ -9,4 +11,5 @@ public interface Constants {
     String WALK_LEFT = "WalkLeft";
     String WALK_RIGHT = "WalkRight";
     String WALK_UP = "WalkUp";
+    int BACKGROUND_COLOR = Color.argb(100, 237, 201, 175);
 }

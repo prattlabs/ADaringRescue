@@ -1,6 +1,8 @@
 package com.prattlabs.adaringrescue.drawing;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -17,15 +19,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import static com.prattlabs.adaringrescue.Constants.BACKGROUND_COLOR;
 import static java.lang.Math.round;
 
 public class GameBoard extends View {
-    private static final int NUM_OF_STARS = 25;
+    private static final int NUM_OF_ROCKS = 25;
+    private static final int NUM_OF_TREES = 15;
     AttributeSet aSet;
     private Paint paintBrush;
-    private List<Point> starField = null;
-    private int starAlpha = 80;
-    private int starFade = 2;
+    private List<Point> rocks = null;
+    private List<Point> trees = null;
     private Actor player;
     private Actor enemy;
     private RectF baddieBounds;
@@ -33,6 +36,7 @@ public class GameBoard extends View {
     private boolean collisionDetected = false;
     private PointF lastCollision = new PointF(-1F, -1F);
     private Canvas canvas;
+    private Bitmap tree;
 
     public GameBoard(Context context, AttributeSet aSet) {
         super(context, aSet);
@@ -44,6 +48,8 @@ public class GameBoard extends View {
 
         baddieBounds = enemy.getBounds();
         playerBounds = player.getBounds();
+
+        tree = BitmapFactory.decodeResource(getResources(), R.drawable.tree);
     }
 
     public Canvas getCanvas() {
@@ -63,7 +69,7 @@ public class GameBoard extends View {
     }
 
     synchronized public void resetStarField() {
-        starField = null;
+        rocks = null;
     }
 
     synchronized public float getBaddieWidth() {
@@ -88,29 +94,57 @@ public class GameBoard extends View {
             this.canvas = canvas;
         }
         paintBackground(canvas);
-        paintStars(canvas);
         drawActors(canvas);
+        paintRocks(canvas);
+        paintTrees(canvas);
         paintXOnCollision(canvas);
     }
 
     private void paintBackground(Canvas canvas) {
-        paintBrush.setColor(Color.BLACK);
+        paintBrush.setColor(BACKGROUND_COLOR);
         paintBrush.setAlpha(255);
         paintBrush.setStrokeWidth(1);
         canvas.drawRect(0, 0, getWidth(), getHeight(), paintBrush);
     }
 
-    private void paintStars(Canvas canvas) {
-        if (starField == null) {
-            initializeStars(canvas.getWidth(), canvas.getHeight());
+    private void paintRocks(Canvas canvas) {
+        if (rocks == null) {
+            rocks = new ArrayList<>();
+            for (int i1 = 0; i1 < NUM_OF_ROCKS; i1++) {
+                Random r = new Random();
+                int x = r.nextInt(canvas.getWidth() - 5 + 1) + 5;
+                int y = r.nextInt(canvas.getHeight() - 5 + 1) + 5;
+                rocks.add(new Point(x, y));
+            }
+            collisionDetected = false;
+        } else {
+            for (int i = 0; i < NUM_OF_ROCKS; i++) {
+                paintBrush.setColor(Color.BLACK);
+                paintBrush.setAlpha(255);
+                paintBrush.setStrokeWidth(5);
+                canvas.drawPoint(rocks.get(i).x, rocks.get(i).y, paintBrush);
+            }
         }
-        paintBrush.setColor(Color.CYAN);
-        paintBrush.setAlpha(starAlpha += starFade);
-        if (starAlpha >= 252 || starAlpha <= 80)
-            starFade = starFade * -1;
-        paintBrush.setStrokeWidth(5);
-        for (int i = 0; i < NUM_OF_STARS; i++) {
-            canvas.drawPoint(starField.get(i).x, starField.get(i).y, paintBrush);
+    }
+
+    private void paintTrees(Canvas canvas) {
+        if (trees == null) {
+            synchronized (this) {
+                trees = new ArrayList<>();
+                for (int i1 = 0; i1 < NUM_OF_TREES; i1++) {
+                    Random r = new Random();
+                    int x = r.nextInt(canvas.getWidth() - 5 + 1) + 5;
+                    int y = r.nextInt(canvas.getHeight() - 5 + 1) + 5;
+                    trees.add(new Point(x, y));
+                }
+            }
+        } else {
+            collisionDetected = false;
+            for (int i = 0; i < NUM_OF_TREES; i++) {
+                // Paint tree bitmap
+                RectF loc = new RectF(trees.get(i).x, trees.get(i).y, trees.get(i).x + 100, trees.get(i).y + 100);
+                canvas.drawBitmap(tree, null, loc, null);
+            }
         }
     }
 
@@ -130,17 +164,6 @@ public class GameBoard extends View {
             canvas.drawLine(lastCollision.x + 5, lastCollision.y - 5,
                     lastCollision.x - 5, lastCollision.y + 5, paintBrush);
         }
-    }
-
-    synchronized private void initializeStars(int maxX, int maxY) {
-        starField = new ArrayList<>();
-        for (int i = 0; i < NUM_OF_STARS; i++) {
-            Random r = new Random();
-            int x = r.nextInt(maxX - 5 + 1) + 5;
-            int y = r.nextInt(maxY - 5 + 1) + 5;
-            starField.add(new Point(x, y));
-        }
-        collisionDetected = false;
     }
 
     private boolean checkForCollision() {
