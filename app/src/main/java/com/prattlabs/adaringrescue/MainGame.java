@@ -14,7 +14,9 @@ import android.widget.TextView;
 import com.prattlabs.adaringrescue.actors.Actor;
 import com.prattlabs.adaringrescue.drawing.GameBoard;
 
+import java.util.ArrayList;
 import java.util.Random;
+import java.util.Set;
 
 import static android.view.GestureDetector.OnGestureListener;
 import static android.view.View.OnClickListener;
@@ -23,7 +25,7 @@ import static com.prattlabs.adaringrescue.Constants.FRAME_RATE;
 public class MainGame extends Activity implements OnClickListener, OnGestureListener {
     private Handler frame = new Handler();
     private Actor player;
-    private Actor baddie;
+    private Set<Actor> enemies;
     private GameBoard mGameBoard;
     private Button mButton;
     private GestureDetectorCompat mDetector;
@@ -56,25 +58,37 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
     }
 
     synchronized public void initGfx() {
+        mGameBoard.resetRocksAndTrees();
+        // Initialize player state
         player = mGameBoard.getPlayer();
         player.setVelocity(1, 1);
-        baddie = mGameBoard.getBaddie();
-        mGameBoard.resetStarField();
+        // Initialize bad guy states
+        enemies = mGameBoard.getEnemies();
         PointF randomPoint1, randomPoint2;
-        do {
-            randomPoint1 = getRandomPoint();
-            randomPoint2 = getRandomPoint();
-        } while (Math.abs(randomPoint1.x - randomPoint2.x) <
-                mGameBoard.getBaddieWidth());
+        randomPoint1 = getRandomPoint();
         mGameBoard.setActorLocation(player, randomPoint1.x, randomPoint1.y);
-        mGameBoard.setActorLocation(baddie, randomPoint2.x, randomPoint2.y);
-        if (baddie != null) {
-            baddie.setVelocity(1, 1);
+        for (Actor enemy : enemies) {
+            do {
+                randomPoint1 = getRandomPoint();
+                randomPoint2 = getRandomPoint();
+                enemy.setLocation(randomPoint2.x, randomPoint2.y);
+                PointF velocity = getRandomVelocity();
+                enemy.setVelocity(velocity.x, velocity.y);
+            } while (Math.abs(randomPoint1.x - randomPoint2.x) < mGameBoard.getBaddieWidth());
         }
         findViewById(R.id.the_button).setEnabled(true);
         frame.removeCallbacks(frameUpdate);
         mGameBoard.invalidate();
         frame.postDelayed(frameUpdate, FRAME_RATE);
+    }
+
+    private PointF getRandomVelocity() {
+        ArrayList<PointF> options = new ArrayList<>(4);
+        options.add(new PointF(1,1));
+        options.add(new PointF(1,-1));
+        options.add(new PointF(-1,1));
+        options.add(new PointF(-1,-1));
+        return options.get((int)(4 * Math.random()));
     }
 
     private PointF getRandomPoint() {
@@ -180,7 +194,7 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
                 return;
             }
             frame.removeCallbacks(this);
-            if (player != null) { // TODO fix problem that necessitates this
+            if (player != null) {
                 ((TextView) findViewById(R.id.the_label)).setText(
                         String.format("Sprite Acceleration(%.2f, %.2f), Pos(%.2f, %.2f)",
                                 player.getVelocity().x,
@@ -191,8 +205,10 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
                 );
                 player.updateLocation(mGameBoard);
             }
-            if (baddie != null) { // TODO ...and this
-                baddie.updateLocation(mGameBoard);
+            for (Actor baddie : enemies) {
+                if (baddie != null) {
+                    baddie.updateLocation(mGameBoard);
+                }
             }
             mGameBoard.invalidate();
             frame.postDelayed(this, FRAME_RATE);

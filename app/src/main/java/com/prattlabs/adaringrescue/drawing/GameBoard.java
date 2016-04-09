@@ -16,8 +16,11 @@ import com.prattlabs.adaringrescue.R;
 import com.prattlabs.adaringrescue.actors.Actor;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import static com.prattlabs.adaringrescue.Constants.BACKGROUND_COLOR;
 import static java.lang.Math.round;
@@ -30,9 +33,14 @@ public class GameBoard extends View {
     private List<Point> rocks = null;
     private List<Point> trees = null;
     private Actor player;
-    private Actor enemy;
-    private RectF baddieBounds;
-    private RectF playerBounds;
+
+    public Set<Actor> getEnemies() {
+        return enemies;
+    }
+
+    private Set<Actor> enemies;
+    private Iterator<Actor> enemyIterator;
+    Actor currentEnemy;
     private boolean collisionDetected = false;
     private PointF lastCollision = new PointF(-1F, -1F);
     private Canvas canvas;
@@ -43,12 +51,14 @@ public class GameBoard extends View {
         this.aSet = aSet;
         paintBrush = new Paint();
 
-        enemy = new Actor(getContext(), aSet, R.drawable.baddie);
         player = new Actor(getContext(), aSet, R.drawable.player);
-
-        baddieBounds = enemy.getBounds();
-        playerBounds = player.getBounds();
-
+        enemies = new HashSet<>(10);
+        synchronized (enemies) {
+            for (int i = 0; i < 10; i++) {
+                enemies.add(new Actor(getContext(), aSet, R.drawable.baddie));
+            }
+        }
+        enemyIterator = enemies.iterator();
         tree = BitmapFactory.decodeResource(getResources(), R.drawable.tree);
     }
 
@@ -61,23 +71,34 @@ public class GameBoard extends View {
     }
 
     public Actor getBaddie() {
-        return enemy;
+        if (!enemyIterator.hasNext()) {
+            enemyIterator = enemies.iterator();
+        }
+        currentEnemy = enemyIterator.next();
+        return currentEnemy;
     }
 
     synchronized public void setActorLocation(Actor actor, float x, float y) {
         actor.setLocation(x, y);
     }
 
-    synchronized public void resetStarField() {
+    synchronized public void resetRocksAndTrees() {
         rocks = null;
+        trees= null;
     }
 
     synchronized public float getBaddieWidth() {
-        return baddieBounds.width();
+        if (currentEnemy != null) {
+            return currentEnemy.getBounds().width();
+        }
+        else return -1;
     }
 
     synchronized public float getBaddieHeight() {
-        return baddieBounds.height();
+        if (currentEnemy != null) {
+            return currentEnemy.getBounds().height();
+        }
+        else return -1;
     }
 
     synchronized public PointF getLastCollision() {
@@ -150,7 +171,9 @@ public class GameBoard extends View {
 
     private void drawActors(Canvas canvas) {
         player.drawActor(canvas);
-        enemy.drawActor(canvas);
+        for (Actor enemy : enemies) {
+            enemy.drawActor(canvas);
+        }
     }
 
     private void paintXOnCollision(Canvas canvas) {
@@ -167,24 +190,26 @@ public class GameBoard extends View {
     }
 
     private boolean checkForCollision() {
-        if (enemy.getLocation().x < 0 && player.getLocation().x < 0
-                && enemy.getLocation().y < 0 && player.getLocation().y < 0)
-            return false;
-        RectF r1 = new RectF(enemy.getLocation().x, enemy.getLocation().y, enemy.getLocation().x
-                + baddieBounds.width(), enemy.getLocation().y + baddieBounds.height());
-        RectF r2 = new RectF(player.getLocation().x, player.getLocation().y, player.getLocation().x +
-                playerBounds.width(), player.getLocation().y + playerBounds.height());
-        RectF r3 = new RectF(r1);
-        if (r1.intersect(r2)) {
-            for (int i = round(r1.left); i < round(r1.right); i++) {
-                for (int j = round(r1.top); j < round(r1.bottom); j++) {
-                    if (enemy.getBitmap().getPixel(i - round(r3.left), j - round(r3.top)) !=
-                            Color.TRANSPARENT) {
-                        if (player.getBitmap().getPixel(i - round(r2.left), j - round(r2.top)) !=
+        for (Actor enemy : enemies) {
+            if (enemy.getLocation().x < 0 && player.getLocation().x < 0
+                    && enemy.getLocation().y < 0 && player.getLocation().y < 0)
+                return false;
+            RectF r1 = new RectF(enemy.getLocation().x, enemy.getLocation().y, enemy.getLocation().x
+                    + enemy.getBounds().width(), enemy.getLocation().y + enemy.getBounds().height());
+            RectF r2 = new RectF(player.getLocation().x, player.getLocation().y, player.getLocation().x +
+                    player.getBounds().width(), player.getLocation().y + player.getBounds().height());
+            RectF r3 = new RectF(r1);
+            if (r1.intersect(r2)) {
+                for (int i = round(r1.left); i < round(r1.right); i++) {
+                    for (int j = round(r1.top); j < round(r1.bottom); j++) {
+                        if (enemy.getBitmap().getPixel(i - round(r3.left), j - round(r3.top)) !=
                                 Color.TRANSPARENT) {
-                            lastCollision = new PointF(player.getLocation().x +
-                                    i - r2.left, player.getLocation().y + j - r2.top);
-                            return true;
+                            if (player.getBitmap().getPixel(i - round(r2.left), j - round(r2.top)) !=
+                                    Color.TRANSPARENT) {
+                                lastCollision = new PointF(player.getLocation().x +
+                                        i - r2.left, player.getLocation().y + j - r2.top);
+                                return true;
+                            }
                         }
                     }
                 }
