@@ -23,6 +23,7 @@ import java.util.Random;
 import java.util.Set;
 
 import static com.prattlabs.adaringrescue.Constants.BACKGROUND_COLOR;
+import static com.prattlabs.adaringrescue.Constants.BULLET_SIZE;
 import static java.lang.Math.round;
 
 public class GameBoard extends View {
@@ -41,6 +42,7 @@ public class GameBoard extends View {
     private Set<Actor> enemies;
     private Iterator<Actor> enemyIterator;
     Actor currentEnemy;
+    private Actor bullet;
     private boolean collisionDetected = false;
     private PointF lastCollision = new PointF(-1F, -1F);
     private Canvas canvas;
@@ -53,11 +55,12 @@ public class GameBoard extends View {
 
         player = new Actor(getContext(), aSet, R.drawable.player);
         enemies = new HashSet<>(10);
-        synchronized (enemies) {
-            for (int i = 0; i < 10; i++) {
-                enemies.add(new Actor(getContext(), aSet, R.drawable.baddie));
-            }
+        for (int i = 0; i < 10; i++) {
+            enemies.add(new Actor(getContext(), aSet, R.drawable.baddie));
         }
+        bullet = new Actor(getContext(), aSet, R.drawable.star);
+        bullet.setTarget(player.getLocation().x, player.getLocation().y);
+
         enemyIterator = enemies.iterator();
         tree = BitmapFactory.decodeResource(getResources(), R.drawable.tree);
     }
@@ -68,14 +71,6 @@ public class GameBoard extends View {
 
     public Actor getPlayer() {
         return player;
-    }
-
-    public Actor getBaddie() {
-        if (!enemyIterator.hasNext()) {
-            enemyIterator = enemies.iterator();
-        }
-        currentEnemy = enemyIterator.next();
-        return currentEnemy;
     }
 
     synchronized public void setActorLocation(Actor actor, float x, float y) {
@@ -115,10 +110,21 @@ public class GameBoard extends View {
             this.canvas = canvas;
         }
         paintBackground(canvas);
-        drawActors(canvas);
         paintRocks(canvas);
+        paintBullet(canvas);
+        drawActors(canvas);
         paintTrees(canvas);
         paintXOnCollision(canvas);
+    }
+
+    private void paintBullet(Canvas canvas) {
+        // Draw bullet
+        canvas.drawBitmap(bullet.getBitmap(), null, bulletSizeToDest(), null);
+    }
+
+    private RectF bulletSizeToDest() {
+        return new RectF(bullet.getLocation().x, bullet.getLocation().y,
+                bullet.getLocation().x + BULLET_SIZE, bullet.getLocation().y + BULLET_SIZE);
     }
 
     private void paintBackground(Canvas canvas) {
@@ -217,5 +223,9 @@ public class GameBoard extends View {
         }
         lastCollision = new PointF(-1F, -1F);
         return false;
+    }
+
+    public Actor getBullet() {
+        return bullet;
     }
 }

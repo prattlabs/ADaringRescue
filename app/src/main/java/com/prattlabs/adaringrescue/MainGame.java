@@ -20,12 +20,14 @@ import java.util.Set;
 
 import static android.view.GestureDetector.OnGestureListener;
 import static android.view.View.OnClickListener;
+import static com.prattlabs.adaringrescue.Constants.BULLET_SPEED;
 import static com.prattlabs.adaringrescue.Constants.FRAME_RATE;
 
 public class MainGame extends Activity implements OnClickListener, OnGestureListener {
     private Handler frame = new Handler();
     private Actor player;
     private Set<Actor> enemies;
+    private Actor bullet;
     private GameBoard mGameBoard;
     private Button mButton;
     private GestureDetectorCompat mDetector;
@@ -54,14 +56,16 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
         if (musicService == null) {
             musicService = new Intent(this, BGMusicService.class);
         }
-        //startService(musicService);
+        startService(musicService);
     }
 
     synchronized public void initGfx() {
         mGameBoard.resetRocksAndTrees();
+
         // Initialize player state
         player = mGameBoard.getPlayer();
         player.setVelocity(1, 1);
+
         // Initialize bad guy states
         enemies = mGameBoard.getEnemies();
         PointF randomPoint1, randomPoint2;
@@ -76,6 +80,12 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
                 enemy.setVelocity(velocity.x, velocity.y);
             } while (Math.abs(randomPoint1.x - randomPoint2.x) < mGameBoard.getBaddieWidth());
         }
+
+        // Initialize bullet state
+        bullet = mGameBoard.getBullet();
+        bullet.setLocation(-10, -10);
+        bullet.setVelocity(0, 0);
+
         findViewById(R.id.the_button).setEnabled(true);
         frame.removeCallbacks(frameUpdate);
         mGameBoard.invalidate();
@@ -139,7 +149,14 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
 
     @Override
     public boolean onSingleTapUp(MotionEvent e) {
-        return false;
+        // Set location of the bullet to the center of the player sprite
+        bullet.setLocation(player.getLocation().x + player.getBounds().centerX(),
+                player.getLocation().y + player.getBounds().centerY());
+
+        // Set the target of the bullet
+        bullet.setTarget(e.getX(), e.getY());
+
+        return true;
     }
 
     @Override
@@ -196,11 +213,11 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
             frame.removeCallbacks(this);
             if (player != null) {
                 ((TextView) findViewById(R.id.the_label)).setText(
-                        String.format("Sprite Acceleration(%.2f, %.2f), Pos(%.2f, %.2f)",
-                                player.getVelocity().x,
-                                player.getVelocity().y,
-                                player.getLocation().x,
-                                player.getLocation().y
+                        String.format("Bullet Vel (%.2f, %.2f), Pos(%.2f, %.2f)",
+                                bullet.getVelocity().x,
+                                bullet.getVelocity().y,
+                                bullet.getLocation().x,
+                                bullet.getLocation().y
                         )
                 );
                 player.updateLocation(mGameBoard);
@@ -209,6 +226,21 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
                 if (baddie != null) {
                     baddie.updateLocation(mGameBoard);
                 }
+            }
+            if (bullet != null) {
+                // Temp variables
+                float targetX = bullet.getTarget().x;
+                float targetY = bullet.getTarget().y;
+                float bulletX = bullet.getLocation().x;
+                float bulletY = bullet.getLocation().y;
+
+                // Version of setX(getX() + (speed * Math.cos(direction)));
+                float deltaX = targetX - bulletX;
+                float deltaY = targetY - bulletY;
+                float direction = (float) Math.atan2(deltaY, deltaX);
+                float x = bulletX + BULLET_SPEED * (float) Math.cos(direction);
+                float y = bulletY + BULLET_SPEED * (float) Math.sin(direction);
+                bullet.setLocation(x,y);
             }
             mGameBoard.invalidate();
             frame.postDelayed(this, FRAME_RATE);

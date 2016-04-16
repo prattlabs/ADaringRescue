@@ -12,4 +12,6 @@ public interface Constants {
     String WALK_RIGHT = "WalkRight";
     String WALK_UP = "WalkUp";
     int BACKGROUND_COLOR = Color.argb(100, 237, 201, 175);
+    int BULLET_SPEED = 3;
+    int BULLET_SIZE = 45;
 }

@@ -35,6 +35,7 @@ public class Actor extends View {
     private SpriteMap map;
     private Map<String, Animation> animations;
     private Animation currentAnimation;
+    private PointF target;
 
     public Actor(Context context, AttributeSet aSet) {
         super(context, aSet);
@@ -139,5 +140,13 @@ public class Actor extends View {
 
     public RectF getBounds() {
         return bounds;
+    }
+
+    public PointF getTarget() {
+        return target;
+    }
+
+    public void setTarget(float x, float y) {
+        target = new PointF(x, y);
     }
 }
