@@ -22,6 +22,7 @@ import static android.view.GestureDetector.OnGestureListener;
 import static android.view.View.OnClickListener;
 import static com.prattlabs.adaringrescue.Constants.BULLET_SPEED;
 import static com.prattlabs.adaringrescue.Constants.FRAME_RATE;
+import static com.prattlabs.adaringrescue.Constants.TIME_TO_DELETE_BULLET;
 
 public class MainGame extends Activity implements OnClickListener, OnGestureListener {
     private Handler frame = new Handler();
@@ -33,6 +34,7 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
     private GestureDetectorCompat mDetector;
     private Runnable frameUpdate = new FrameUpdate();
     private Intent musicService;
+    private long instantFired;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -83,7 +85,7 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
 
         // Initialize bullet state
         bullet = mGameBoard.getBullet();
-        bullet.setLocation(-10, -10);
+        bullet.setLocation(-100, -100);
         bullet.setVelocity(0, 0);
 
         findViewById(R.id.the_button).setEnabled(true);
@@ -92,22 +94,32 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
         frame.postDelayed(frameUpdate, FRAME_RATE);
     }
 
-    private PointF getRandomVelocity() {
-        ArrayList<PointF> options = new ArrayList<>(4);
-        options.add(new PointF(1,1));
-        options.add(new PointF(1,-1));
-        options.add(new PointF(-1,1));
-        options.add(new PointF(-1,-1));
-        return options.get((int)(4 * Math.random()));
-    }
-
     private PointF getRandomPoint() {
-        float maxX = mGameBoard.getWidth() - mGameBoard.getBaddieWidth();
-        float maxY = mGameBoard.getHeight() - mGameBoard.getBaddieHeight();
+        float maxX;
+        float maxY;
+        do {
+            maxX = mGameBoard.getWidth() - mGameBoard.getBaddieWidth();
+            maxY = mGameBoard.getHeight() - mGameBoard.getBaddieHeight();
+            try {
+                Thread.sleep(100);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } while (maxX <= 0 || maxY < 0);
         Random r = new Random();
         float x = r.nextInt(((int) maxX) + 1);
         float y = r.nextInt(((int) maxY) + 1);
+
         return new PointF(x, y);
+    }
+
+    private PointF getRandomVelocity() {
+        ArrayList<PointF> options = new ArrayList<>(4);
+        options.add(new PointF(1, 1));
+        options.add(new PointF(1, -1));
+        options.add(new PointF(-1, 1));
+        options.add(new PointF(-1, -1));
+        return options.get((int) (4 * Math.random()));
     }
 
     @Override
@@ -130,7 +142,23 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
 
     @Override
     public boolean onDown(MotionEvent e) {
-        return false;
+
+        if (System.currentTimeMillis() - instantFired > TIME_TO_DELETE_BULLET) {
+            instantFired = System.currentTimeMillis();
+        }
+
+        // If the bullet is traveling on the screen, don't fire
+        if (bullet.getLocation().x > 0) {
+            return true;
+        }
+
+        // Set location of the bullet to the center of the player sprite
+        bullet.setLocation(player.getLocation().x + player.getBounds().centerX(),
+                player.getLocation().y + player.getBounds().centerY());
+
+        // Set the target of the bullet
+        bullet.setTarget(e.getX(), e.getY());
+        return true;
     }
 
     @Override
@@ -149,14 +177,7 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
 
     @Override
     public boolean onSingleTapUp(MotionEvent e) {
-        // Set location of the bullet to the center of the player sprite
-        bullet.setLocation(player.getLocation().x + player.getBounds().centerX(),
-                player.getLocation().y + player.getBounds().centerY());
-
-        // Set the target of the bullet
-        bullet.setTarget(e.getX(), e.getY());
-
-        return true;
+        return false;
     }
 
     @Override
@@ -192,12 +213,24 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
         return true;
     }
 
+    private void vanishBullet() {
+        bullet.setLocation(-100, -100);
+        bullet.setVelocity(0, 0);
+    }
+
     class FrameUpdate implements Runnable {
         @Override
         synchronized public void run() {
+
+            //delete bullet after n seconds
+            if (System.currentTimeMillis() - instantFired > TIME_TO_DELETE_BULLET &&
+                    instantFired != 0) {
+                vanishBullet();
+                instantFired = 0;
+            }
+
             if (mGameBoard.wasCollisionDetected()) {
-                PointF collisionPoint =
-                        mGameBoard.getLastCollision();
+                PointF collisionPoint = mGameBoard.getLastCollision();
                 if (collisionPoint.x >= 0) {
                     ((TextView) findViewById(R.id.the_other_label)).setText(
                             new StringBuilder()
@@ -208,6 +241,8 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
                                     .append(")")
                     );
                 }
+                initGfx();
+                // Lose life or game over
                 return;
             }
             frame.removeCallbacks(this);
@@ -227,12 +262,28 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
                     baddie.updateLocation(mGameBoard);
                 }
             }
-            if (bullet != null) {
+
+            // Bullet reaches target
+            if (bullet.getLocation().x >= bullet.getTarget().x - 10
+                    && bullet.getLocation().x <= bullet.getTarget().x + 10) {
+                vanishBullet();
+            }
+
+            // Bullet is out of bounds
+            if (bullet.getLocation().x > mGameBoard.getWidth() || bullet.getLocation().x < 0 ||
+                    bullet.getLocation().y > mGameBoard.getHeight() || bullet.getLocation().y < 0) {
+                vanishBullet();
+            }
+
+            if (bullet != null && bullet.getLocation().x > 0) {
                 // Temp variables
                 float targetX = bullet.getTarget().x;
                 float targetY = bullet.getTarget().y;
                 float bulletX = bullet.getLocation().x;
                 float bulletY = bullet.getLocation().y;
+
+                targetX -= 52; // Game frame offset
+                targetY -= 330;
 
                 // Version of setX(getX() + (speed * Math.cos(direction)));
                 float deltaX = targetX - bulletX;
@@ -240,7 +291,12 @@ public class MainGame extends Activity implements OnClickListener, OnGestureList
                 float direction = (float) Math.atan2(deltaY, deltaX);
                 float x = bulletX + BULLET_SPEED * (float) Math.cos(direction);
                 float y = bulletY + BULLET_SPEED * (float) Math.sin(direction);
-                bullet.setLocation(x,y);
+                bullet.setLocation(x, y);
+
+                ((TextView) findViewById(R.id.the_other_label)).setText(
+                        "Bullet Target = " + targetX + ", " + targetY
+                );
+
             }
             mGameBoard.invalidate();
             frame.postDelayed(this, FRAME_RATE);

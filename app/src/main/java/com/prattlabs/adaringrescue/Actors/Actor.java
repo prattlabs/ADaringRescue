@@ -22,6 +22,8 @@ import static com.prattlabs.adaringrescue.Constants.WALK_DOWN;
 import static com.prattlabs.adaringrescue.Constants.WALK_LEFT;
 import static com.prattlabs.adaringrescue.Constants.WALK_RIGHT;
 import static com.prattlabs.adaringrescue.Constants.WALK_UP;
+import static com.prattlabs.adaringrescue.Constants.ACTOR_HEIGHT;
+import static com.prattlabs.adaringrescue.Constants.ACTOR_WIDTH;
 import static java.lang.Math.abs;
 import static java.lang.Math.round;
 
@@ -113,23 +115,23 @@ public class Actor extends View {
             else
                 currentAnimation = animations.get(WALK_DOWN);
         }
-        canvas.drawBitmap(getBitmap(), source(), destination(), null);
+        canvas.drawBitmap(getBitmap(), sourceFrame(), drawSize(), null);
     }
 
     public Bitmap getBitmap() {
         return bitmap;
     }
 
-    private RectF destination() {
+    private RectF drawSize() {
         return new RectF(getLocation().x,
                 getLocation().y,
-                getLocation().x + 75,
-                getLocation().y + 75
+                getLocation().x + ACTOR_WIDTH,
+                getLocation().y + ACTOR_HEIGHT
         );
     }
 
     @NonNull
-    private Rect source() {
+    private Rect sourceFrame() {
         RectF nextFrame = currentAnimation.getNextFrame();
         return new Rect(round(nextFrame.left),
                 round(nextFrame.top),

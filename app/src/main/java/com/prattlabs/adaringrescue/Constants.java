@@ -11,7 +11,11 @@ public interface Constants {
     String WALK_LEFT = "WalkLeft";
     String WALK_RIGHT = "WalkRight";
     String WALK_UP = "WalkUp";
+    int NUM_ENEMIES = 5;
     int BACKGROUND_COLOR = Color.argb(100, 237, 201, 175);
-    int BULLET_SPEED = 3;
+    int BULLET_SPEED = 15;
     int BULLET_SIZE = 45;
+    long TIME_TO_DELETE_BULLET=2000;
+    int ACTOR_WIDTH = 75;
+    int ACTOR_HEIGHT = 75;
 }
